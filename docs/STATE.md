@@ -39,6 +39,7 @@ Automated red science feeding labs, with research running continuously. Phase-2 
 | `green-cu` | -63,20 .. -57,29 | Copper from the filtered inserter east on row 20, down x=-57, underground past the coal belt, into M's corner (-57,30) from the north (copper on M's north lane, upstream of every consumer) | Proven via `prove green` |
 | `power2` | 35,34 .. 46,50 | Boiler 2 (36,39) + 2 steam engines (36,41),(36,46). Water from boiler 1's west port (46,34) along row 34, down x=39, under the coal belt by pipe-to-ground (39,36)/(39,38). Coal: inserter (37,38) straight off the player's coal belt | `client/power2_run.py`. Proven. 3.6 MW total |
 | `brick-sink` | -59,41 .. -59,42 | Inserter filtered to stone-brick at the end of the green row-40 belt, into a chest | Stopgap. The cause (elec-iron2's west unit reaching stone) is retired |
+| `labs45` | -65,22 .. -58,26 | Lab 4 (-64,22) fed from lab 1 by (-65,23); lab 5 (-60,24) fed from lab 4 by (-61,24). Lab-to-lab inserters pass red + green | `client/labs_run.py`. Proven 30/30 |
 | `acA` | 30,10 | Stone furnace left by the acceptance tester | Ignore |
 
 - **Inventory:** all 10 red flasks are in the lab; I hold 39 small poles, 50 coal, 60 iron and 14 copper plates.
@@ -60,11 +61,12 @@ Automated red science feeding labs, with research running continuously. Phase-2 
 
 ## Background helpers (restart on resume)
 - `client/research_keeper.py` (log `/tmp/research_keeper.log`): queues the next research when idle.
+- Chat voices are factory-themed (the player wants a game, not a coding project): [Maintenance Crew] = watchdog.py, [Lab Director] = research_keeper.py, [Foreman] = a build script starting/finishing (job names in `play.JOBS`).
 - `client/watchdog.py` (log `/tmp/watchdog.log`): once a minute, reports any tag machine stuck 5 checks running, and power above 90%. Watch it with a Monitor on `tail -F /tmp/watchdog.log | grep --line-buffered "Maintenance Crew"`.
 
 ## Known issues
 - The old iron smelter's west electric drill (-95..-93, 37..39; the player upgraded it) also mines coal; the coal fills its furnace's fuel slot and jams it. I took 45 coal out on 2026-10-04; it will re-jam. Move or remove that drill.
-- Labs A and B (science2) get no green; only lab 1 does.
+- Labs A and B (science2) get no green; labs 1, 4 and 5 do.
 
 ## Gotchas learned the hard way
 - **Drills mine everything under their 5x5 area.** Stone or coal at the edge of an ore patch ends up in the furnace (bricks on the iron belt, coal jamming the fuel slot). Check the drill's whole mining area, not just its 3x3 footprint.
