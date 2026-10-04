@@ -33,6 +33,15 @@ MACHINE_OK = {
     "lab": {"working"},
 }
 SAMPLE_TICKS = 60
+UPGRADES = {
+    "wooden-chest": ("iron-chest", "steel-chest"),
+    "iron-chest": ("steel-chest",),
+    "burner-mining-drill": ("electric-mining-drill",),
+    "burner-inserter": ("inserter", "fast-inserter"),
+    "inserter": ("fast-inserter",),
+    "transport-belt": ("fast-transport-belt",),
+    "assembling-machine-1": ("assembling-machine-2",),
+}
 
 
 class Fail(Exception):
@@ -237,7 +246,11 @@ def tag_entities(b, tag):
         x, y, code, _ = codes[e["index"] - 1]
         name = CODES[code][0]
         snap = b.call("scan", {"area": [x, y, x + 1, y + 1]})
-        hit = next((s for s in snap["entities"] if s["name"] == name and not s.get("ghost") and tuple(s["tile"]) == (x, y)), None)
+        here = [s for s in snap["entities"] if not s.get("ghost") and tuple(s["tile"]) == (x, y)]
+        hit = next((s for s in here if s["name"] == name), None)
+        if hit is None and name in UPGRADES:
+            # the player upgraded it in place (wooden -> iron/steel chest, burner -> electric drill)
+            hit = next((s for s in here if s["name"] in UPGRADES[name]), None)
         if hit:
             ents[i] = dict(hit, index=e["index"])
     return ents
