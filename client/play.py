@@ -82,7 +82,7 @@ def run(*args):
     print(f"$ fx {' '.join(map(str, args))}", flush=True)
     args = [str(a) for a in args]
     tmpl = NARRATE.get(args[0])
-    if tmpl and args[0] != "lint":
+    if tmpl and args[0] not in ("lint", "build", "prove"):
         narrate(tmpl.format(*args, *[""] * 4))
     code = fx.main(args)
     sys.stdout.flush()
