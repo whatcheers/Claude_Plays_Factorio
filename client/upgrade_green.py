@@ -45,7 +45,7 @@ def main():
         steel(b, 2 * len(todo))
         for t in todo:
             if inv(b).get("assembling-machine-2", 0) < 1:
-                top_up(b, *IRON_CHEST, "iron-plate", 25)
+                top_up(b, *IRON_CHEST, "iron-plate", 60)
                 must("craft", "copper-cable", 5)
                 must("craft", "electronic-circuit", 3)
                 must("craft", "iron-gear-wheel", 5)
