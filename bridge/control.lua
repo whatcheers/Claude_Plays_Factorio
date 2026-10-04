@@ -461,6 +461,46 @@ script.on_event(defines.events.on_tick, function()
   end
 end)
 
+-- ---------------------------------------------------------------- chat with the team
+-- Players' chat lines are queued for Claude; Claude answers with `say`.
+local CHAT_KEEP = 200
+
+script.on_event(defines.events.on_console_chat, function(ev)
+  if not ev.player_index then return end -- server/RCON lines (including Claude's own)
+  local ok = pcall(function()
+    storage.chat = storage.chat or { seq = 0, msgs = {} }
+    local ch = storage.chat
+    ch.seq = ch.seq + 1
+    local p = game.get_player(ev.player_index)
+    ch.msgs[#ch.msgs + 1] = { id = ch.seq, tick = ev.tick, from = p and p.name or "?", text = ev.message }
+    while #ch.msgs > CHAT_KEEP do table.remove(ch.msgs, 1) end
+  end)
+end)
+
+function api.chat_read(a)
+  local ch = storage.chat or { seq = 0, msgs = {} }
+  local out = {}
+  for _, m in ipairs(ch.msgs) do
+    if m.id > (a.after or 0) then out[#out + 1] = m end
+  end
+  return { seq = ch.seq, msgs = out }
+end
+
+function api.say(a)
+  local text = tostring(a.text or ""):sub(1, 500)
+  game.print("[color=#7fc8ff][Claude][/color] " .. text)
+  local c = char()
+  if c then
+    pcall(function()
+      c.surface.create_entity {
+        name = "compi-speech-bubble", position = c.position, source = c,
+        text = text, lifetime = math.min(600, 120 + #text * 4),
+      }
+    end)
+  end
+  return { said = text }
+end
+
 -- ---------------------------------------------------------------- remote interface
 local wrapped = {}
 for name, fn in pairs(api) do

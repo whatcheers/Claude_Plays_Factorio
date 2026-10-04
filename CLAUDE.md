@@ -41,12 +41,17 @@ All commands are `python client/fx.py <command>`. Exit code 0 means success.
 | `craft ITEM N` | Hand-craft from Claude's own ingredients |
 | `put X Y ITEM N` / `take X Y ITEM N` | Move items between Claude's inventory and an entity within reach |
 | `inv` | List Claude's inventory |
+| `say TEXT...` | Post in game chat as **[Claude]**, with a speech bubble over Claude's character |
+| `chat [--after N]` | Print players' chat messages with id > N |
 | `prove T N` | Run N ticks, then print each entity's status. Exit 0 only if every machine is working |
 
 The workflow is always: `plan` → `look` + `shot` + `lint` → `build` → `put` fuel/inputs → `prove`. Commands that need game time unpause the game and restore the previous paused state afterwards.
 
 ### Stamps
 Stamps live in `stamps/*.txt`. Each tile is 2 characters: an entity code plus a direction char (`^ > v <`, or `.` for none). For inserters the direction char is the **drop side**. Multi-tile entities repeat their code over the whole footprint. The full code table is in `.build/SPEC.md` under "Stamp format".
+
+## Chat with the player
+Players type in normal game chat; the mod queues every line (`on_console_chat`). Run `python client/chatwatch.py` under Monitor: it prints one `[chat] name: text` line per new message, remembers its place in `.chat_seq`, and reconnects after a re-host. Answer with `fx.py say`.
 
 ## Tests
 - `python -m pytest -q tests`: offline (stamps, rotation, renderer, lint). Run a single test with `python -m pytest -q tests/test_lint.py::test_sideload_flagged_unless_s`.

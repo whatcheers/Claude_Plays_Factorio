@@ -2,3 +2,4 @@
 .rcon_password
 __pycache__/
 .pytest_cache/
+.chat_seq

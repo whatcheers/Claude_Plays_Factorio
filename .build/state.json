@@ -1,5 +1,5 @@
 {
-  "stage": "code-review",
+  "stage": "done",
   "base_commit": "172c10e7d5652ba788f3357bfe4821296036a1b8",
   "history": [
     {
@@ -63,6 +63,20 @@
       "event": "advance",
       "from": "build",
       "to": "code-review",
+      "note": ""
+    },
+    {
+      "ts": "2026-10-04T05:46:18",
+      "event": "advance",
+      "from": "code-review",
+      "to": "acceptance",
+      "note": ""
+    },
+    {
+      "ts": "2026-10-04T05:56:22",
+      "event": "advance",
+      "from": "acceptance",
+      "to": "done",
       "note": ""
     }
   ],

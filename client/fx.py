@@ -14,7 +14,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from bridge import ROOT, Bridge, BridgeError  # noqa: E402
-from layout import CODES, load_stamp, place, rotate  # noqa: E402
+from layout import CODES, StampError, load_stamp, place, rotate  # noqa: E402
 from lint import lint  # noqa: E402
 from render import render  # noqa: E402
 
@@ -373,6 +373,19 @@ def cmd_prove(b, a):
     print("all working")
 
 
+def cmd_say(b, a):
+    r = b.call("say", {"text": " ".join(a.text)})
+    print(f"said: {r['said']}")
+
+
+def cmd_chat(b, a):
+    r = b.call("chat_read", {"after": a.after})
+    for m in r["msgs"]:
+        print(f"#{m['id']} {m['from']}: {m['text']}")
+    if not r["msgs"]:
+        print(f"(no messages after #{a.after})")
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="fx")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -413,6 +426,8 @@ def main(argv=None):
         s.add_argument("item")
         s.add_argument("n", type=int)
     sub.add_parser("inv")
+    sub.add_parser("say").add_argument("text", nargs="+")
+    sub.add_parser("chat").add_argument("--after", type=int, default=0)
     s = sub.add_parser("prove")
     s.add_argument("tag")
     s.add_argument("ticks", type=int)
@@ -420,7 +435,7 @@ def main(argv=None):
     try:
         with Bridge() as b:
             globals()["cmd_" + a.cmd](b, a)
-    except (Fail, BridgeError) as e:
+    except (Fail, BridgeError, StampError) as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
     return 0
