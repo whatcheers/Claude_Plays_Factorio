@@ -77,13 +77,24 @@ def remarks(f):
     return out
 
 
+FORMS = [
+    "Please file form QA-27B (Observation Acknowledgement) in triplicate.",
+    "I'll need a 14-C Deviation Report on my desk by end of shift.",
+    "This has been logged on form 9-Yellow. The yellow copy is yours. Don't lose it.",
+    "Fill out a Corrective Action Request, form CAR-3. The blue one, not the light blue one.",
+    "Initial here, here and here. Form QA-1, page 4 of 11.",
+    "Form 220-J (Notice of Noticing) has been filed on your behalf. You're welcome.",
+    "Please submit form QA-404 (Missing Form Report) if you can't find the form.",
+]
+
+
 def main():
     print("[QA Inspector] clipboard in hand", flush=True)
     while True:
         time.sleep(random.randint(20 * 60, 40 * 60))
         try:
             with Bridge() as b:
-                msg = "[QA Inspector] " + random.choice(remarks(facts(b))) + " Carry on."
+                msg = "[QA Inspector] " + random.choice(remarks(facts(b))) + " " + random.choice(FORMS)
                 print(msg, flush=True)
                 b.call("say", {"text": msg}, check=False)
         except Exception as e:
