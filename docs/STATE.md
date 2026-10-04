@@ -33,10 +33,13 @@ Automated red science feeding labs, with research running continuously. Phase-2 
 | `engine2` | 46,41 .. 49,45 | Second steam engine chained below the first, pole (46,42) | 1.8 MW total. Proven |
 | `elec-iron` | -103,42 .. -74,49 | 4 electric drills (x -85..-74, y 42..44) -> stone furnaces (y 45..46); long-handed inserters fuel them from a coal belt (row 49) fed by an electric drill on coal at (-103,46); inserters put plates on row 48 -> up x=-91 -> inserter into the iron chest from the south | `client/elec_iron_run.py`. Proven 60/60 (the first prove failed only on coal start-up lag) |
 | (player's coal line) | coal field (-106..-99, 31..32) -> belt row 28 -> boiler chest (45,35) | Burner drills on coal, belt to the boiler; the boiler is fed by an electric inserter (46,35) | Built by the player. The boiler no longer needs hand coal |
+| `elec-iron2` | -79,30 .. -57,56 | Mirror of elec-iron on rows 50..56 sharing its coal belt (extended east on row 49). Plates: row 50 east -> up x=-57 -> belt M west along row 30 (iron on M's south lane) | `client/green_run.py`. Proven (furnaces may sit output-full; M backs up) |
+| `green` | -73,20 .. -58,40 | Green science: M loops down x=-73 and back east on row 40. Row 1 (rows 32-34, fed from M): gear (-72,32), gear (-64,32), cable (-60,32). Row 2 (rows 36-38, fed from row 40): belt asm (-72,36), GREEN (-68,36), inserter asm (-64,36), circuit (-60,36). Flasks go up x=-67 by underground into lab 1 via (-67,25). Filtered inserter (-70,20) takes copper only off the red copper/gear belt | Proven. The original copper column at x=-63 is retired (`fx retire`) |
+| `green-cu` | -63,20 .. -57,29 | Copper from the filtered inserter east on row 20, down x=-57, underground past the coal belt, into M's corner (-57,30) from the north (copper on M's north lane, upstream of every consumer) | Proven via `prove green` |
 | `acA` | 30,10 | Stone furnace left by the acceptance tester | Ignore |
 
 - **Inventory:** all 10 red flasks are in the lab; I hold 39 small poles, 50 coal, 60 iron and 14 copper plates.
-- **Research:** every useful red-only tech is done (the keeper also wasted some on gun turret/military/stone wall before the combat filter); the rest need green.  Automation and Logistics are researched. `client/research_keeper.py` runs in the background (log `/tmp/research_keeper.log`) and queues the next red-only tech whenever research is idle. Restart it on resume.
+- **Research:** green flasks flow into lab 1 only; the keeper now picks red+green techs (Automation 2 first). Every useful red-only tech is done (the keeper also wasted some on gun turret/military/stone wall before the combat filter); the rest need green.  Automation and Logistics are researched. `client/research_keeper.py` runs in the background (log `/tmp/research_keeper.log`) and queues the next red-only tech whenever research is idle. Restart it on resume.
 - **Resources:**
   - iron around (-80,40);
   - copper around (-80,0);
