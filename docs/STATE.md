@@ -9,7 +9,7 @@ Last updated 2026-10-04. **Update this file whenever something is built or the p
 - Background helpers left running in game (plain Python, no Claude usage): research_keeper.py, watchdog.py, production_manager.py, qa_inspector.py. Restart them on resume if the machine rebooted.
 
 ## How to resume
-1. Read `CLAUDE.md` (commands, architecture) and `docs/conventions.md` (measured engine facts).
+1. Read `docs/conventions.md` (measured engine facts) before touching coordinates. `CLAUDE.md` is already loaded.
 2. Re-arm the chat watcher with the Monitor tool: `cd ~/playground/factory && python -u client/chatwatch.py`, timeout 30 min, re-armed on every expiry. Answer the player in game with `python client/fx.py say ...`.
 3. Run `python client/fx.py status` and `python client/fx.py tech`.
 4. Check the last background run: `/tmp/power_run.log`.
@@ -63,11 +63,10 @@ Automated red science feeding labs, with research running continuously. Phase-2 
   - trees: north-east around (80,-40).
 
 ## Next steps
-1. Task 15 is done (2026-10-04): the lab and the power block both pass `prove`.
-2. Task 16 is done (2026-10-04), and red science is scaled to 3 assemblers + 3 labs (player asked). `prove` OK sets now also accept an inserter waiting for space and an assembler with full output; **record both in SPEC AC-23 (reopen spec) before code review**.
-   - Bottlenecks next: iron/copper smelting (2 burner drills each) and boiler coal.
-3. Boiler coal is solved by the player's coal line. Next work is in `docs/PLAN-next.md`: green science, then electric copper.
-4. **Then:** code review (Codex + Sonnet) and acceptance for phase 2, as `crosscheck-build` describes.
+1. **Record in SPEC AC-23 (reopen spec) before code review:** `prove` OK sets now also accept an inserter waiting for space and an assembler with full output.
+2. **Then:** code review (Codex + Sonnet) and acceptance for phase 2, as `crosscheck-build` describes.
+
+Finished steps are in `docs/HISTORY.md` (not needed to resume).
 
 ## Throughput (2026-10-04)
 - Green: both green-flask assemblers are assembler 2 (8 s/flask): ~15/min max. Red: 3 assembler-1 lines, ~18/min max.

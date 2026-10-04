@@ -26,7 +26,7 @@ The spec and audit trail live in `.build/`, from the crosscheck-build pipeline. 
 Factorio re-reads `bridge/control.lua` every time a map loads, so after editing it, re-host or reload instead of restarting the game. An uncaught error in the mod's event handlers kills the hosted game, so tick and path handlers must stay wrapped in `pcall`.
 
 ## Commands
-All commands are `python client/fx.py <command>`. Exit code 0 means success.
+All commands are `python client/fx.py <command>`. Exit code 0 means success. Output is terse: problems plus a one-line summary (`plan` lists only mismatched ghosts, `build` counts what it built, `prove` lists only machines not OK in every sample). `fx.py -v <command>` or env `FX_VERBOSE=1` prints every line.
 
 | Command | What it does |
 |---|---|

@@ -4,6 +4,7 @@ plan -> look + shot + lint -> build -> prove. Build refuses until all three
 checks have seen the current state of the tag's area.
 """
 import argparse
+import collections
 import hashlib
 import math
 import json
@@ -33,6 +34,8 @@ MACHINE_OK = {
     "lab": {"working"},
 }
 SAMPLE_TICKS = 60
+# terse output by default (exceptions + summary); `fx -v ...` or FX_VERBOSE=1 prints every line
+VERBOSE = os.environ.get("FX_VERBOSE") == "1"
 UPGRADES = {
     "wooden-chest": ("iron-chest", "steel-chest"),
     "iron-chest": ("steel-chest",),
@@ -149,7 +152,8 @@ def cmd_look(b, a):
     for name in covered:
         t = st["tags"][name]
         t.setdefault("checks", {})["look"] = fingerprint(snap, padded(t["bbox"]))
-        print(f"(look covers tag {name})")
+    if covered:
+        print(f"(look covers tag{'s' if len(covered) > 1 else ''} {', '.join(covered)})")
     save_state(st)
 
 
@@ -184,7 +188,10 @@ def plan_placed(b, st, tag, placed, bbox, meta):
         mark = "ok" if tuple(got["tile"]) == want.tile and got["direction"] == want.direction else "MISMATCH"
         if mark != "ok":
             bad.append(want)
-        print(f"  {want.tile[0]},{want.tile[1]} {want.code}{want.dchar} {want.name} -> engine {got['tile'][0]},{got['tile'][1]} dir {got['direction']} {mark}")
+        if VERBOSE or mark != "ok":
+            print(f"  {want.tile[0]},{want.tile[1]} {want.code}{want.dchar} {want.name} -> engine {got['tile'][0]},{got['tile'][1]} dir {got['direction']} {mark}")
+    if not bad and not VERBOSE:
+        print(f"  {len(placed)} ghosts, all where the stamp says")
     st["tags"][tag] = dict(meta, bbox=bbox, codes=[[p.tile[0], p.tile[1], p.code, p.dchar] for p in placed], checks={})
     save_state(st)
     print(f"bbox {bbox[0]},{bbox[1]} .. {bbox[2]},{bbox[3]}")
@@ -335,13 +342,16 @@ def cmd_shot(b, a):
         raise Fail(f"screenshot not written: {full}")
     print(full)
     # the picture is only credited if nothing changed around it while it was taken
+    credited = []
     for name, t in covered.items():
         after = tag_fp(b, t)
         if after == before[name]:
             t.setdefault("checks", {})["shot"] = after
-            print(f"(shot covers tag {name})")
+            credited.append(name)
         else:
             print(f"(area of tag {name} changed during the shot; not credited)")
+    if credited:
+        print(f"(shot covers tag{'s' if len(credited) > 1 else ''} {', '.join(credited)})")
     save_state(st)
 
 
@@ -392,7 +402,7 @@ def cmd_build(b, a):
                 pos = j["result"]["position"]
             r = b.call("revive", {"tag": a.tag, "index": g["index"]}, check=False)
         if r.get("built"):
-            built.append(where)
+            built.append((where, g["name"]))
             inv[g["item"]] -= 1
         elif r.get("missing"):
             missing.append(where)
@@ -400,8 +410,11 @@ def cmd_build(b, a):
             unreachable.append(where)
         else:
             blocked.append(f"{where} ({r.get('error')})")
-    for w in built:
-        print(f"built {w}")
+    if VERBOSE:
+        for w, _ in built:
+            print(f"built {w}")
+    elif built:
+        print(build_summary([name for _, name in built]))
     for w in missing:
         print(f"missing {w}")
     for w in unreachable:
@@ -410,6 +423,12 @@ def cmd_build(b, a):
         print(f"blocked {w}")
     if missing or unreachable or blocked:
         raise Fail(f"{len(missing) + len(unreachable) + len(blocked)} ghost(s) not built")
+
+
+def build_summary(names):
+    """One line for everything built: `built 5: 3 transport-belt, 2 inserter`."""
+    counts = collections.Counter(names).most_common()
+    return f"built {len(names)}: " + ", ".join(f"{n} {name}" for name, n in counts)
 
 
 def cmd_walk(b, a):
@@ -503,17 +522,23 @@ def cmd_take(b, a):
 def cmd_inv(b, a):
     r = b.call("inv")
     p = r["position"]
+    if not VERBOSE:
+        items = ", ".join(f"{n} {name}" for name, n in sorted(r["items"].items()))
+        print(f"at {p[0]:.2f},{p[1]:.2f}: {items or 'empty'}")
+        return
     print(f"at {p[0]:.2f},{p[1]:.2f}")
     for name, n in sorted(r["items"].items()):
         print(f"  {n:5d} {name}")
 
 
-def judge(samples):
+def judge(samples, verbose=True):
     """samples: list of `tag` entity lists taken every SAMPLE_TICKS. An entity
     passes if its status is OK in at least half the samples; containers fed by
-    tag inserters must end non-empty; the final sample decides ghosts/gone."""
+    tag inserters must end non-empty; the final sample decides ghosts/gone.
+    verbose=False keeps only the lines worth reading: problems, and machines
+    that were not OK in every sample."""
     final = samples[-1]
-    lines, bad = prove_report(final, check_status=False)
+    rows, bad = prove_report(final, check_status=False)
     for i, e in enumerate(final):
         if e.get("invalid") or e.get("ghost"):
             continue
@@ -522,39 +547,41 @@ def judge(samples):
             continue
         good = sum(1 for s in samples if i < len(s) and s[i].get("status") in ok)
         where = f"{e['tile'][0]},{e['tile'][1]} {e['name']}"
-        lines.append(f"  {where}: ok in {good}/{len(samples)} samples")
+        rows.append((f"  {where}: ok in {good}/{len(samples)} samples", good < len(samples)))
         if good * 2 < len(samples):
             bad.append(f"{where} ({e.get('status')}; ok {good}/{len(samples)})")
-    return lines, bad
+    return [line for line, notable in rows if verbose or notable], bad
 
 
 def prove_report(ents, check_status=True):
     """Statuses, plus: every container a tag inserter drops into must have
-    received something (the output actually arrived)."""
-    lines, bad = [], []
+    received something (the output actually arrived). Returns ([(line,
+    notable)], bad), where notable lines are the ones that added to bad."""
+    rows, bad = [], []
     sink_tiles = set()
     for e in ents:
         if not e.get("invalid") and e.get("type") == "inserter" and e.get("drop"):
             sink_tiles.add((math.floor(e["drop"][0]), math.floor(e["drop"][1])))
     for e in ents:
         if e.get("invalid"):
-            lines.append("  (entity gone)")
+            rows.append(("  (entity gone)", True))
             bad.append("gone")
             continue
         where = f"{e['tile'][0]},{e['tile'][1]} {e['name']}"
         if e["ghost"]:
-            lines.append(f"  {where}: still a ghost")
+            rows.append((f"  {where}: still a ghost", True))
             bad.append(where)
             continue
         status = e.get("status")
         extra = f" {e['contents']}" if e.get("contents") else ""
-        lines.append(f"  {where}: {status}{extra}")
+        n = len(bad)
         ok = MACHINE_OK.get(e["type"])
         if check_status and ok is not None and status not in ok:
             bad.append(f"{where} ({status})")
         if e["type"] == "container" and tuple(e["tile"]) in sink_tiles and not e.get("contents"):
             bad.append(f"{where} (output container is empty)")
-    return lines, bad
+        rows.append((f"  {where}: {status}{extra}", len(bad) > n))
+    return rows, bad
 
 
 def cmd_prove(b, a):
@@ -562,12 +589,13 @@ def cmd_prove(b, a):
     for _ in range(max(1, a.ticks // SAMPLE_TICKS)):
         b.run_ticks(SAMPLE_TICKS)
         samples.append(tag_entities(b, a.tag))
-    lines, bad = judge(samples)
+    lines, bad = judge(samples, VERBOSE)
     print(f"after {a.ticks} ticks ({len(samples)} samples):")
-    print("\n".join(lines))
+    if lines:
+        print("\n".join(lines))
     if bad:
         raise Fail("not working: " + "; ".join(bad))
-    print("all working")
+    print(f"all working ({len(samples[-1])} entities)")
 
 
 def cmd_research(b, a):
@@ -603,7 +631,9 @@ def cmd_chat(b, a):
 
 
 def main(argv=None):
+    global VERBOSE
     p = argparse.ArgumentParser(prog="fx")
+    p.add_argument("-v", "--verbose", action="store_true", help="print every line (default: exceptions + summary)")
     sub = p.add_subparsers(dest="cmd", required=True)
     sub.add_parser("status")
     sub.add_parser("spawn")
@@ -667,6 +697,7 @@ def main(argv=None):
     s.add_argument("tag")
     s.add_argument("ticks", type=int)
     a = p.parse_args(argv)
+    VERBOSE = a.verbose or os.environ.get("FX_VERBOSE") == "1"
     try:
         with Bridge() as b:
             globals()["cmd_" + a.cmd](b, a)

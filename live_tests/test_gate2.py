@@ -24,7 +24,7 @@ def test_build_relints_beyond_the_fingerprint(tmp_path):
 
 def test_prove_samples():
     for tag in ("copper", "e2e"):
-        code, out = fx("prove", tag, 180)
+        code, out = fx("-v", "prove", tag, 180)
         if "unknown tag" not in out:
             assert "(3 samples)" in out and "ok in" in out, out
             return

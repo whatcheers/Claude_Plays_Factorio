@@ -36,6 +36,7 @@ def pick(avail, packs=(RED,)):
 
 
 def main():
+    down = False  # report an outage once, not every 30 s
     while True:
         try:
             with Bridge() as b:
@@ -50,8 +51,13 @@ def main():
                         b.call("research", {"name": n})
                         b.call("say", {"text": f"[Lab Director] research done, the labs are starting on {n.replace('-', ' ')}"}, check=False)
                         print(f"{time.strftime('%H:%M:%S')} queued {n}", flush=True)
+            if down:
+                print(f"{time.strftime('%H:%M:%S')} game reachable again", flush=True)
+                down = False
         except Exception as e:  # game reloading etc.: try again next round
-            print(f"{time.strftime('%H:%M:%S')} {e}", flush=True)
+            if not down:
+                print(f"{time.strftime('%H:%M:%S')} {e}", flush=True)
+                down = True
         time.sleep(30)
 
 

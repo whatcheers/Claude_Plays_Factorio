@@ -89,6 +89,7 @@ FORMS = [
 
 
 def main():
+    down = False  # report an outage once, not every round
     print("[QA Inspector] clipboard in hand", flush=True)
     while True:
         time.sleep(random.randint(20 * 60, 40 * 60))
@@ -97,8 +98,11 @@ def main():
                 msg = "[QA Inspector] " + random.choice(remarks(facts(b))) + " " + random.choice(FORMS)
                 print(msg, flush=True)
                 b.call("say", {"text": msg}, check=False)
+            down = False
         except Exception as e:
-            print(f"[QA Inspector] lost my clipboard: {e}", flush=True)
+            if not down:
+                print(f"[QA Inspector] lost my clipboard: {e}", flush=True)
+                down = True
 
 
 if __name__ == "__main__":

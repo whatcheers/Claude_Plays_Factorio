@@ -6,7 +6,7 @@ from helpers import bridge, find_clear, fx, grid_rows, write_stamp
 
 def plan(stamp, x, y, rot, tag):
     fx("unplan", tag)
-    return fx("plan", stamp, x, y, rot, "--tag", tag)
+    return fx("-v", "plan", stamp, x, y, rot, "--tag", tag)
 
 
 def test_plan_places_ghosts_where_stamp_says(tmp_path):
