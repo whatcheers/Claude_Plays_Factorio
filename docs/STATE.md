@@ -61,7 +61,7 @@ Automated red science feeding labs, with research running continuously. Phase-2 
 
 ## Background helpers (restart on resume)
 - `client/research_keeper.py` (log `/tmp/research_keeper.log`): queues the next research when idle.
-- Chat voices are factory-themed (the player wants a game, not a coding project): [Maintenance Crew] = watchdog.py, [Lab Director] = research_keeper.py, [Foreman] = a build script starting/finishing (job names in `play.JOBS`), [Production Manager] = production_manager.py (every 10 min: stats + one suggestion; log `/tmp/production_manager.log`).
+- Chat voices are factory-themed (the player wants a game, not a coding project): [Maintenance Crew] = watchdog.py, [Lab Director] = research_keeper.py, [Foreman] = a build script starting/finishing (job names in `play.JOBS`), [QA Inspector] = qa_inspector.py (every 20-40 min one picky remark from live data; log `/tmp/qa_inspector.log`), [Production Manager] = production_manager.py (every 10 min: stats + one suggestion; log `/tmp/production_manager.log`).
 - `client/watchdog.py` (log `/tmp/watchdog.log`): once a minute, reports any tag machine stuck 5 checks running, and power above 90%. Watch it with a Monitor on `tail -F /tmp/watchdog.log | grep --line-buffered "Maintenance Crew"`.
 
 ## Known issues
