@@ -42,11 +42,36 @@ def _check_chat():
         raise ChatInterrupt("player spoke in chat; stopping here so Claude can respond")
 
 
+# steps worth telling the player about in game chat (FX_NARRATE=0 turns it off)
+NARRATE = {
+    "plan": "planning {1} as ghosts",
+    "lint": "checking {1}",
+    "build": "building {1}",
+    "prove": "testing {1} for {2} ticks",
+    "craft": "crafting {2} x {1}",
+    "retire": "removing {2},{3} from {1}",
+}
+
+
+def narrate(text):
+    if os.environ.get("FX_NARRATE", "1") == "1":
+        try:
+            fx.main(["say", text])
+        except Exception:
+            pass
+
+
 def run(*args):
     _check_chat()
     print(f"$ fx {' '.join(map(str, args))}", flush=True)
-    code = fx.main([str(a) for a in args])
+    args = [str(a) for a in args]
+    tmpl = NARRATE.get(args[0])
+    if tmpl and args[0] != "lint":
+        narrate(tmpl.format(*args, *[""] * 4))
+    code = fx.main(args)
     sys.stdout.flush()
+    if tmpl and args[0] in ("lint", "build", "prove"):
+        narrate(tmpl.format(*args, *[""] * 4) + (": OK" if code == 0 else ": FAILED"))
     return code
 
 

@@ -13,6 +13,7 @@ Last updated 2026-10-04. **Update this file whenever something is built or the p
 - **No approvals:** they said "dont ask for approval just play the game". Never offer option menus; pick one fix and do it. I lead.
 - **Chat is how they direct me.** Answer within seconds, which means:
   - long scripts run with `run_in_background`;
+  - scripts narrate plan/check/build/test/craft steps in game chat (`play.NARRATE`; `FX_NARRATE=0` turns it off; the player asked 2026-10-04).
   - background scripts no longer stop on chat (2026-10-04, the player asked). The chatwatch monitor reports chat; answer with `fx.py say` while the script runs. Don't issue walk/build/craft commands while a script is driving the character. `FX_CHAT_INTERRUPT=1` restores the old stop-on-chat.
 - **Mod changes need a reload:** after editing `bridge/control.lua`, ask them in chat for Esc → Save, quit to menu, Multiplayer → Host saved game.
 
@@ -36,6 +37,7 @@ Automated red science feeding labs, with research running continuously. Phase-2 
 | `elec-iron2` | -79,30 .. -57,56 | Mirror of elec-iron on rows 50..56 sharing its coal belt (extended east on row 49). Plates: row 50 east -> up x=-57 -> belt M west along row 30 (iron on M's south lane) | `client/green_run.py`. Proven (furnaces may sit output-full; M backs up) |
 | `green` | -73,20 .. -58,40 | Green science: M loops down x=-73 and back east on row 40. Row 1 (rows 32-34, fed from M): gear (-72,32), gear (-64,32), cable (-60,32). Row 2 (rows 36-38, fed from row 40): belt asm (-72,36), GREEN (-68,36), inserter asm (-64,36), circuit (-60,36). Flasks go up x=-67 by underground into lab 1 via (-67,25). Filtered inserter (-70,20) takes copper only off the red copper/gear belt | Proven. The original copper column at x=-63 is retired (`fx retire`) |
 | `green-cu` | -63,20 .. -57,29 | Copper from the filtered inserter east on row 20, down x=-57, underground past the coal belt, into M's corner (-57,30) from the north (copper on M's north lane, upstream of every consumer) | Proven via `prove green` |
+| `power2` | 35,34 .. 46,50 | Boiler 2 (36,39) + 2 steam engines (36,41),(36,46). Water from boiler 1's west port (46,34) along row 34, down x=39, under the coal belt by pipe-to-ground (39,36)/(39,38). Coal: inserter (37,38) straight off the player's coal belt | `client/power2_run.py`. Proven. 3.6 MW total |
 | `acA` | 30,10 | Stone furnace left by the acceptance tester | Ignore |
 
 - **Inventory:** all 10 red flasks are in the lab; I hold 39 small poles, 50 coal, 60 iron and 14 copper plates.
