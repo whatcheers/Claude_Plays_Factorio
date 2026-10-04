@@ -21,8 +21,13 @@ _chat_seen = None
 
 
 def _check_chat():
-    """Raise ChatInterrupt if anyone has chatted since this script started."""
+    """Raise ChatInterrupt if anyone has chatted since this script started.
+    Off by default: the chatwatch monitor tells Claude about chat on its own,
+    and Claude answers with `fx.py say` while the script keeps going.
+    Set FX_CHAT_INTERRUPT=1 to stop at the next step instead."""
     global _chat_seen
+    if os.environ.get("FX_CHAT_INTERRUPT") != "1":
+        return
     from bridge import Bridge
 
     try:
