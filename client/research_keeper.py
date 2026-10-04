@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from bridge import Bridge  # noqa: E402
 
 # preferred order; anything else red-only follows, cheapest first
-PREFER = ["logistics", "electric-mining-drill", "steel-processing", "logistic-science-pack", "fast-inserter", "radar"]
+PREFER = ["logistics", "electric-mining-drill", "logistic-science-pack", "steel-processing", "fast-inserter", "radar"]
 
 
 def pick(avail):
