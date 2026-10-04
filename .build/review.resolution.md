@@ -1,0 +1,8 @@
+- codex/C1: fixed — `fingerprint` now includes resource tiles (name, tile), so ore running dry under a drill invalidates the checks; amounts are still ignored (client/fx.py fingerprint)
+- codex/C2: fixed — lint scans with LINT_PAD=6 (more than the max underground distance of 5), while the fingerprint still covers bbox+4 as the spec says (client/fx.py cmd_lint)
+- codex/C3: fixed — `mine` refuses resources whose mineable_properties.required_fluid is set (bridge/control.lua api.mine)
+- codex/C4: fixed — prove_report fails when a container that a tag inserter drops into is empty (client/fx.py prove_report) same-as: sonnet/C1
+- codex/C5: fixed — look takes one scan of union(look area, padded tag bbox), renders the look area, and fingerprints the same snapshot; shot fingerprints before and after and credits only if they match (client/fx.py cmd_look, cmd_shot)
+- sonnet/C1: fixed — same change as codex/C4 same-as: codex/C4
+- sonnet/C2: fixed — revive errors step the character off the footprint and retry once, then are listed as `blocked` and the build continues; exit is nonzero (client/fx.py cmd_build)
+- sonnet/C3: fixed — unplan drops a locally-known tag even when the game has no such tag (re-host), and errors only if neither knows it (client/fx.py cmd_unplan)

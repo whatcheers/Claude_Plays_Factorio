@@ -5,6 +5,7 @@ checks have seen the current state of the tag's area.
 """
 import argparse
 import hashlib
+import math
 import json
 import os
 import sys
@@ -19,7 +20,8 @@ from render import render  # noqa: E402
 
 STATE = os.path.join(ROOT, ".fx_state.json")
 SCRIPT_OUTPUT = os.path.join(os.environ.get("APPDATA", ""), "Factorio", "script-output")
-PAD = 4
+PAD = 4  # fingerprint margin (SPEC AC-8)
+LINT_PAD = 6  # lint margin: must exceed the longest underground reach (5)
 MACHINE_OK = {
     "furnace": {"working"},
     "assembling-machine": {"working"},
@@ -51,25 +53,40 @@ def get_tag(st, tag):
     return st["tags"][tag]
 
 
-def padded(bbox):
+def padded(bbox, pad=PAD):
     x1, y1, x2, y2 = bbox
-    return [x1 - PAD, y1 - PAD, x2 + PAD, y2 + PAD]
+    return [x1 - pad, y1 - pad, x2 + pad, y2 + pad]
 
 
-def fingerprint(snap):
-    """What the checks saw: every non-character entity (ghost or built is the
-    same layout) and water. Resource amounts are ignored."""
+def _in(area, x, y):
+    return area[0] <= x <= area[2] and area[1] <= y <= area[3]
+
+
+def fingerprint(snap, area):
+    """What a check saw inside `area`: every non-character entity (ghost or
+    built is the same layout), water, and which tiles hold which resource.
+    Resource amounts are ignored; a tile running dry changes the print."""
+    def touches(e):
+        x, y = e["tile"]
+        return x <= area[2] and x + e["w"] - 1 >= area[0] and y <= area[3] and y + e["h"] - 1 >= area[1]
+
     ents = sorted(
         (e["name"], tuple(e["tile"]), e["w"], e["h"], e["direction"], e.get("belt_type") or "")
         for e in snap["entities"]
-        if e["type"] != "character"
+        if e["type"] != "character" and touches(e)
     )
-    water = sorted(tuple(t) for t in snap.get("water", []))
-    return hashlib.sha1(json.dumps([ents, water]).encode()).hexdigest()
+    water = sorted(tuple(w) for w in snap.get("water", []) if _in(area, *w))
+    res = sorted((r["name"], tuple(r["tile"])) for r in snap.get("resources", []) if _in(area, *r["tile"]))
+    return hashlib.sha1(json.dumps([ents, water, res]).encode()).hexdigest()
 
 
 def tag_fp(b, t):
-    return fingerprint(b.call("scan", {"area": padded(t["bbox"])}))
+    area = padded(t["bbox"])
+    return fingerprint(b.call("scan", {"area": area}), area)
+
+
+def union(a, b):
+    return [min(a[0], b[0]), min(a[1], b[1]), max(a[2], b[2]), max(a[3], b[3])]
 
 
 def covers(area, bbox):
@@ -101,13 +118,19 @@ def cmd_spawn(b, a):
 
 def cmd_look(b, a):
     area = [a.x1, a.y1, a.x2, a.y2]
-    snap = b.call("scan", {"area": area})
-    print(render(snap))
     st = load_state()
-    for name, t in st["tags"].items():
-        if covers(area, t["bbox"]):
-            t.setdefault("checks", {})["look"] = tag_fp(b, t)
-            print(f"(look covers tag {name})")
+    covered = [name for name, t in st["tags"].items() if covers(area, t["bbox"])]
+    # one scan feeds both the picture and the fingerprints, so the recorded
+    # check is exactly what was shown
+    scan_area = area
+    for name in covered:
+        scan_area = union(scan_area, padded(st["tags"][name]["bbox"]))
+    snap = b.call("scan", {"area": scan_area})
+    print(render(dict(snap, area=area)))
+    for name in covered:
+        t = st["tags"][name]
+        t.setdefault("checks", {})["look"] = fingerprint(snap, padded(t["bbox"]))
+        print(f"(look covers tag {name})")
     save_state(st)
 
 
@@ -151,16 +174,21 @@ def cmd_plan(b, a):
 
 def cmd_unplan(b, a):
     st = load_state()
-    r = b.call("unplan", {"tag": a.tag})
-    st["tags"].pop(a.tag, None)
+    r = b.call("unplan", {"tag": a.tag}, check=False)
+    known_locally = st["tags"].pop(a.tag, None) is not None
     save_state(st)
+    if r.get("error"):
+        if not known_locally:
+            raise Fail(r["error"])
+        print(f"{a.tag}: the game has no such tag (re-hosted?); dropped it from local state")
+        return
     print(f"removed {r['removed']} ghosts of {a.tag}")
 
 
 def cmd_lint(b, a):
     st = load_state()
     t = get_tag(st, a.tag)
-    snap = b.call("scan", {"area": padded(t["bbox"])})
+    snap = b.call("scan", {"area": padded(t["bbox"], LINT_PAD)})
     found = lint(snap, codes_of(t))
     for f in found:
         print(f)
@@ -168,13 +196,18 @@ def cmd_lint(b, a):
         t.get("checks", {}).pop("lint", None)
         save_state(st)
         raise Fail(f"{len(found)} finding(s)")
-    t.setdefault("checks", {})["lint"] = fingerprint(snap)
+    t.setdefault("checks", {})["lint"] = fingerprint(snap, padded(t["bbox"]))
     save_state(st)
     print(f"lint {a.tag}: clean")
 
 
 def cmd_shot(b, a):
     rel = f"claude/shot-{int(time.time() * 1000)}.png"
+    st = load_state()
+    half_w, half_h = a.w / (32 * a.zoom) / 2, a.h / (32 * a.zoom) / 2
+    area = [a.x - half_w, a.y - half_h, a.x + half_w - 1, a.y + half_h - 1]
+    covered = {name: t for name, t in st["tags"].items() if covers(area, t["bbox"])}
+    before = {name: tag_fp(b, t) for name, t in covered.items()}
     b.call("shot", {"x": a.x, "y": a.y, "zoom": a.zoom, "w": a.w, "h": a.h, "path": rel})
     full = os.path.join(SCRIPT_OUTPUT, *rel.split("/"))
     deadline = time.time() + 15
@@ -183,13 +216,14 @@ def cmd_shot(b, a):
     if not os.path.exists(full):
         raise Fail(f"screenshot not written: {full}")
     print(full)
-    half_w, half_h = a.w / (32 * a.zoom) / 2, a.h / (32 * a.zoom) / 2
-    area = [a.x - half_w, a.y - half_h, a.x + half_w - 1, a.y + half_h - 1]
-    st = load_state()
-    for name, t in st["tags"].items():
-        if covers(area, t["bbox"]):
-            t.setdefault("checks", {})["shot"] = tag_fp(b, t)
+    # the picture is only credited if nothing changed around it while it was taken
+    for name, t in covered.items():
+        after = tag_fp(b, t)
+        if after == before[name]:
+            t.setdefault("checks", {})["shot"] = after
             print(f"(shot covers tag {name})")
+        else:
+            print(f"(area of tag {name} changed during the shot; not credited)")
     save_state(st)
 
 
@@ -211,7 +245,7 @@ def cmd_build(b, a):
     ents = b.call("tag", {"tag": a.tag})["entities"]
     ghosts = [e for e in ents if not e.get("invalid") and e["ghost"]]
     inv = b.call("inv")["items"]
-    built, missing, unreachable = [], [], []
+    built, missing, unreachable, blocked = [], [], [], []
     pos = b.call("status")["character"]
     while ghosts:
         ghosts.sort(key=lambda e: (e["position"][0] - pos[0]) ** 2 + (e["position"][1] - pos[1]) ** 2)
@@ -228,6 +262,12 @@ def cmd_build(b, a):
                 continue
             pos = j["result"]["position"]
             r = b.call("revive", {"tag": a.tag, "index": g["index"]}, check=False)
+        if r.get("error"):
+            # most often Claude is standing on the footprint: step off and retry once
+            j = b.run_job("walk", {"x": g["position"][0] + g["w"] / 2 + 2.5, "y": g["position"][1], "radius": 1})
+            if j["state"] == "done":
+                pos = j["result"]["position"]
+            r = b.call("revive", {"tag": a.tag, "index": g["index"]}, check=False)
         if r.get("built"):
             built.append(where)
             inv[g["item"]] -= 1
@@ -236,15 +276,17 @@ def cmd_build(b, a):
         elif r.get("unreachable"):
             unreachable.append(where)
         else:
-            raise Fail(f"{where}: {r.get('error')}")
+            blocked.append(f"{where} ({r.get('error')})")
     for w in built:
         print(f"built {w}")
     for w in missing:
         print(f"missing {w}")
     for w in unreachable:
         print(f"unreachable {w}")
-    if missing or unreachable:
-        raise Fail(f"{len(missing) + len(unreachable)} ghost(s) not built")
+    for w in blocked:
+        print(f"blocked {w}")
+    if missing or unreachable or blocked:
+        raise Fail(f"{len(missing) + len(unreachable) + len(blocked)} ghost(s) not built")
 
 
 def cmd_walk(b, a):
@@ -292,7 +334,13 @@ def cmd_inv(b, a):
 
 
 def prove_report(ents):
+    """Statuses, plus: every container a tag inserter drops into must have
+    received something (the output actually arrived)."""
     lines, bad = [], []
+    sink_tiles = set()
+    for e in ents:
+        if not e.get("invalid") and e.get("type") == "inserter" and e.get("drop"):
+            sink_tiles.add((math.floor(e["drop"][0]), math.floor(e["drop"][1])))
     for e in ents:
         if e.get("invalid"):
             lines.append("  (entity gone)")
@@ -309,6 +357,8 @@ def prove_report(ents):
         ok = MACHINE_OK.get(e["type"])
         if ok is not None and status not in ok:
             bad.append(f"{where} ({status})")
+        if e["type"] == "container" and tuple(e["tile"]) in sink_tiles and not e.get("contents"):
+            bad.append(f"{where} (output container is empty)")
     return lines, bad
 
 

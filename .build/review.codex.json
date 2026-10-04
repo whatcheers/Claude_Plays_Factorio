@@ -1,0 +1,44 @@
+{
+  "findings": [
+    {
+      "id": "C1",
+      "severity": "major",
+      "file": "client/fx.py",
+      "line": 68,
+      "claim": "The build fingerprint omits resources entirely, allowing stale placement checks to pass in violation of AC-8.",
+      "failure_scenario": "Plan a drill over the last ore tile in its mining area and complete lint, look, and shot; then mine away that ore before building. The scan now reports no ore and can_place=false, but its fingerprint remains identical, so build passes the gate instead of refusing with 'area changed since checks'."
+    },
+    {
+      "id": "C2",
+      "severity": "major",
+      "file": "client/fx.py",
+      "line": 163,
+      "claim": "The four-tile scan margin prevents lint from recognizing valid underground-belt partners five tiles outside the tag, violating AC-6.",
+      "failure_scenario": "Plan a single east-facing underground input at (0,0), with an existing east-facing output at (5,0). This is within the yellow underground belt's maximum distance of five, but lint scans only through tile x=4, reports 'no matching output ahead', and prevents the valid layout from passing the build gate."
+    },
+    {
+      "id": "C3",
+      "severity": "major",
+      "file": "bridge/control.lua",
+      "line": 399,
+      "claim": "Manual resource mining bypasses required mining fluids, violating the fair-play requirement.",
+      "failure_scenario": "Move Claude within reach of uranium ore and run 'mine X Y 1' without any sulfuric acid. The resource branch inserts uranium ore and decrements the deposit without checking mineable_properties.required_fluid or consuming acid, allowing extraction that vanilla hand mining cannot perform."
+    },
+    {
+      "id": "C4",
+      "severity": "major",
+      "file": "client/fx.py",
+      "line": 321,
+      "claim": "The prove command does not enforce AC-11's requirement that the burner-iron chest contain at least one iron plate.",
+      "failure_scenario": "Run 'prove T 600' on the built burner-iron stamp while an external inserter drains its output chest. If the drills, furnaces, and tag inserters have accepted statuses while the chest is empty, prove prints 'all working' and exits zero. Only the separate e2e script checks the plate count; the required CLI command does not."
+    },
+    {
+      "id": "C5",
+      "severity": "major",
+      "file": "client/fx.py",
+      "line": 109,
+      "claim": "Look records a fingerprint from a later scan rather than the snapshot it rendered, allowing an unseen change to satisfy AC-8.",
+      "failure_scenario": "A tag contains two chests with an empty tile between them. During look, a player builds another chest in that middle tile after the rendering scan but before tag_fp rescans. The displayed grid still shows the empty tile, but look records the new layout's fingerprint. Subsequent lint and shot checks match that fingerprint, so build accepts a layout that look never displayed."
+    }
+  ]
+}

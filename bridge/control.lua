@@ -376,6 +376,9 @@ function api.mine(a)
   local target = entity_at(a.x, a.y)
   if not target then return { error = "nothing minable at " .. a.x .. "," .. a.y } end
   if not target.minable then return { error = target.name .. " is not minable" } end
+  if target.prototype.mineable_properties.required_fluid then
+    return { error = target.name .. " needs " .. target.prototype.mineable_properties.required_fluid .. " to mine; not by hand" }
+  end
   local reach = target.type == "resource" and c.resource_reach_distance or c.reach_distance
   if bbox_dist(c.position, target.bounding_box) > reach then return { error = "out of reach" } end
   return set_job { kind = "mine", target = target, left = a.n or 1, progress = 0, per = mining_ticks(c, target), got = 0 }

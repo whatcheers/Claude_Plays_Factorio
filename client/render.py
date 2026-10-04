@@ -36,7 +36,7 @@ def render(snap):
         g = glyph(e)
         for t in footprint(e):
             cells[t] = g
-        if e.get("ghost"):
+        if e.get("ghost") and x1 <= e["tile"][0] <= x2 and y1 <= e["tile"][1] <= y2:
             ghosts.append(f"{e['tile'][0]},{e['tile'][1]} {g}")
 
     ruler = [" "] * (2 * w)
