@@ -78,6 +78,7 @@ Automated red science feeding labs, with research running continuously. Phase-2 
 - All 5 labs get green (labs A/B from Green Block 2, labs 1/4/5 from Green Block 1).
 
 ## Gotchas learned the hard way
+- **One basic inserter moves at most ~50 items/min.** Everything elec-iron makes enters the iron chest through (-91,42); as a basic inserter it capped the chest at ~50 iron/min no matter how many furnaces. Now a fast inserter (~138/min). Check every single-inserter handoff when adding capacity.
 - **An upgraded inserter can come back reversed.** The copper smelter's furnace->chest inserters were replaced facing the wrong way: they pulled plates out of the chest and tried to put them into the furnaces, so copper production was 0 while the chest drained (found and fixed 2026-10-04 by rotating both). A reversed inserter looks like a healthy 'waiting' one; the Maintenance Crew now compares every inserter's drop side with its stamp.
 - **Drills mine everything under their 5x5 area.** Stone or coal at the edge of an ore patch ends up in the furnace (bricks on the iron belt, coal jamming the fuel slot). Check the drill's whole mining area, not just its 3x3 footprint.
 - **Trigger techs** (craft-item, build-entity, mine-entity) only count real players. The mod now credits Claude's own crafts, builds and mines (`credit()` in `control.lua`). `automation-science-pack` was flipped by script after Claude's lab craft.

@@ -92,7 +92,9 @@ JOBS = {
 
 
 def _script_name():
-    name = os.path.splitext(os.path.basename(sys.argv[0] or "job"))[0]
+    name = os.path.splitext(os.path.basename(sys.argv[0] or ""))[0]
+    if name in ("", "-", "-c"):
+        return "a quick fix"
     return JOBS.get(name, name.replace("_run", "").replace("_", " "))
 
 
