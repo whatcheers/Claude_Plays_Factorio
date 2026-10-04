@@ -38,6 +38,7 @@ Automated red science feeding labs, with research running continuously. Phase-2 
 | `green` | -73,20 .. -58,40 | Green science: M loops down x=-73 and back east on row 40. Row 1 (rows 32-34, fed from M): gear (-72,32), gear (-64,32), cable (-60,32). Row 2 (rows 36-38, fed from row 40): belt asm (-72,36), GREEN (-68,36), inserter asm (-64,36), circuit (-60,36). Flasks go up x=-67 by underground into lab 1 via (-67,25). Filtered inserter (-70,20) takes copper only off the red copper/gear belt | Proven. The original copper column at x=-63 is retired (`fx retire`) |
 | `green-cu` | -63,20 .. -57,29 | Copper from the filtered inserter east on row 20, down x=-57, underground past the coal belt, into M's corner (-57,30) from the north (copper on M's north lane, upstream of every consumer) | Proven via `prove green` |
 | `power2` | 35,34 .. 46,50 | Boiler 2 (36,39) + 2 steam engines (36,41),(36,46). Water from boiler 1's west port (46,34) along row 34, down x=39, under the coal belt by pipe-to-ground (39,36)/(39,38). Coal: inserter (37,38) straight off the player's coal belt | `client/power2_run.py`. Proven. 3.6 MW total |
+| `brick-sink` | -59,41 .. -59,42 | Inserter filtered to stone-brick at the end of the green row-40 belt, into a chest | Stopgap. The cause (elec-iron2's west unit reaching stone) is retired |
 | `acA` | 30,10 | Stone furnace left by the acceptance tester | Ignore |
 
 - **Inventory:** all 10 red flasks are in the lab; I hold 39 small poles, 50 coal, 60 iron and 14 copper plates.
@@ -57,7 +58,16 @@ Automated red science feeding labs, with research running continuously. Phase-2 
 3. Boiler coal is solved by the player's coal line. Next work is in `docs/PLAN-next.md`: green science, then electric copper.
 4. **Then:** code review (Codex + Sonnet) and acceptance for phase 2, as `crosscheck-build` describes.
 
+## Background helpers (restart on resume)
+- `client/research_keeper.py` (log `/tmp/research_keeper.log`): queues the next research when idle.
+- `client/watchdog.py` (log `/tmp/watchdog.log`): once a minute, reports any tag machine stuck 5 checks running, and power above 90%. Watch it with a Monitor on `tail -F /tmp/watchdog.log | grep --line-buffered watchdog`.
+
+## Known issues
+- The old iron smelter's west electric drill (-95..-93, 37..39; the player upgraded it) also mines coal; the coal fills its furnace's fuel slot and jams it. I took 45 coal out on 2026-10-04; it will re-jam. Move or remove that drill.
+- Labs A and B (science2) get no green; only lab 1 does.
+
 ## Gotchas learned the hard way
+- **Drills mine everything under their 5x5 area.** Stone or coal at the edge of an ore patch ends up in the furnace (bricks on the iron belt, coal jamming the fuel slot). Check the drill's whole mining area, not just its 3x3 footprint.
 - **Trigger techs** (craft-item, build-entity, mine-entity) only count real players. The mod now credits Claude's own crafts, builds and mines (`credit()` in `control.lua`). `automation-science-pack` was flipped by script after Claude's lab craft.
 - **`can_place_entity`** without `build_check_type = manual` says yes to an offshore pump on dry land.
 - **Steam engines** are axis-only: the engine reports a south-facing engine as north.
