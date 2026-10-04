@@ -1,5 +1,6 @@
 """Keep research going: every 30 s, if nothing is being researched, queue the
-cheapest available tech that needs only red science. Run it in the background."""
+preferred tech using only the science packs we make (green once any green has been
+made). Run it in the background."""
 import os
 import sys
 import time
@@ -11,11 +12,17 @@ from bridge import Bridge  # noqa: E402
 # peaceful map: never spend flasks on combat techs
 SKIP = ("military", "gun-turret", "stone-wall", "weapon", "physical-projectile", "heavy-armor", "turret")
 # preferred order; anything else red-only follows, cheapest first
-PREFER = ["logistics", "electric-mining-drill", "logistic-science-pack", "steel-processing", "fast-inserter", "radar"]
+PREFER = ["logistics", "electric-mining-drill", "logistic-science-pack", "steel-processing", "fast-inserter", "radar",
+          "automation-2", "logistics-2", "advanced-material-processing", "engine", "electric-energy-distribution-1",
+          "toolbelt", "landfill", "circuit-network", "solar-energy"]
+RED, GREEN = "automation-science-pack", "logistic-science-pack"
+MADE_GREEN = ("local s = game.forces.player.get_item_production_statistics(game.surfaces[1])"
+              " rcon.print(s.get_input_count('logistic-science-pack'))")
 
 
-def pick(avail):
-    red = [t for t in avail if not t.get("trigger") and (t.get("ingredients") or []) == ["automation-science-pack"]
+def pick(avail, packs=(RED,)):
+    """Preferred (else cheapest) tech whose science packs are all ones we make."""
+    red = [t for t in avail if not t.get("trigger") and t.get("ingredients") and set(t["ingredients"]) <= set(packs)
            and not any(k in t["name"] for k in SKIP)]
     names = {t["name"]: t for t in red}
     for n in PREFER:
@@ -30,7 +37,11 @@ def main():
             with Bridge() as b:
                 r = b.call("tech")
                 if not r.get("current"):
-                    n = pick(r.get("available", []))
+                    try:
+                        green = int(b.lua(MADE_GREEN).strip() or 0) > 0
+                    except Exception:
+                        green = False
+                    n = pick(r.get("available", []), (RED, GREEN) if green else (RED,))
                     if n:
                         b.call("research", {"name": n})
                         b.call("say", {"text": f"Research done; now researching {n}."}, check=False)
