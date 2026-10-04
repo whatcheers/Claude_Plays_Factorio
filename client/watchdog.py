@@ -42,6 +42,18 @@ def say(b, text):
         pass
 
 
+OUTPUT_LUA = ("local e = game.surfaces[1].find_entities_filtered{area={{%s, %s}, {%s, %s}}, type='assembling-machine'}[1]"
+              " rcon.print(e and #e.get_inventory(defines.inventory.assembling_machine_output).get_contents() or 0)")
+
+
+def has_output(b, e):
+    x, y = e["tile"]
+    try:
+        return int(b.lua(OUTPUT_LUA % (x + 0.2, y + 0.2, x + 0.8, y + 0.8)).strip() or 0) > 0
+    except Exception:
+        return False
+
+
 def check(b, streaks, alerted):
     for tag in fx.load_state()["tags"]:
         if tag in SKIP_TAGS:
@@ -57,6 +69,9 @@ def check(b, streaks, alerted):
             if ok is None:
                 continue
             key = (tag, tuple(e["tile"]), e["name"])
+            if e.get("status") == "item_ingredient_shortage" and has_output(b, e):
+                # finished products waiting: it is paced by demand downstream, not starved
+                e = dict(e, status=None)
             if e.get("status") in ok or e.get("status") is None:
                 streaks.pop(key, None)
                 if key in alerted:
