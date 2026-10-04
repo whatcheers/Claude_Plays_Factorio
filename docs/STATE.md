@@ -65,6 +65,7 @@ Automated red science feeding labs, with research running continuously. Phase-2 
 ## Throughput (2026-10-04)
 - Green: both green-flask assemblers are assembler 2 (8 s/flask): ~15/min max. Red: 3 assembler-1 lines, ~18/min max.
 - Steel comes from the player's steelworks (stone furnace at -94,32); don't build our own. I hold 8 steel and 639 belts (the player crafted them).
+- Build queue (player, 2026-10-04): 1) finish steel furnaces on the iron columns (`client/iron_steel_run.py`, reruns as steel arrives), 2) copper expansion: 2 more copper drills + furnaces (PM: ~45 copper/min needed vs 60 capacity). Copper chest has no free side; route the new copper so it doesn't mix into the gear lane of the red copper/gear belt.
 - Next: blue science is "down the line" (player). Research order is set in research_keeper.py; nearest crude oil ~(159,319).
 
 ## Background helpers (restart on resume)
