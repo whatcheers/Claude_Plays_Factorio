@@ -13,7 +13,7 @@ Last updated 2026-10-04. **Update this file whenever something is built or the p
 - **No approvals:** they said "dont ask for approval just play the game". Never offer option menus; pick one fix and do it. I lead.
 - **Chat is how they direct me.** Answer within seconds, which means:
   - long scripts run with `run_in_background`;
-  - scripts narrate plan/check/build/test/craft steps in game chat (`play.NARRATE`; `FX_NARRATE=0` turns it off; the player asked 2026-10-04).
+  - the player wants Claude's own short findings + next-step lines in game chat (post them with `fx.py say` as you work), not mechanical step logs. Script narration is off by default (`FX_NARRATE=1` turns it on).
   - background scripts no longer stop on chat (2026-10-04, the player asked). The chatwatch monitor reports chat; answer with `fx.py say` while the script runs. Don't issue walk/build/craft commands while a script is driving the character. `FX_CHAT_INTERRUPT=1` restores the old stop-on-chat.
 - **Mod changes need a reload:** after editing `bridge/control.lua`, ask them in chat for Esc → Save, quit to menu, Multiplayer → Host saved game.
 

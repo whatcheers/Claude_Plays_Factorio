@@ -60,7 +60,7 @@ _narration = []
 def narrate(text):
     """Collect step updates; they go to game chat as one message (the player
     asked for one message instead of rapid lines) when a result is known."""
-    if os.environ.get("FX_NARRATE", "1") == "1":
+    if os.environ.get("FX_NARRATE", "0") == "1":
         _narration.append(text)
 
 
