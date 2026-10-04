@@ -1,0 +1,6 @@
+# A second steam engine chained below the first (steam passes through), with a pole.
+..E^E^E^
+p.E^E^E^
+..E^E^E^
+..E^E^E^
+..E^E^E^
