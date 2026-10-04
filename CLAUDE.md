@@ -40,6 +40,7 @@ All commands are `python client/fx.py <command>`. Exit code 0 means success.
 | `build T` | Refuses unless lint, look and shot have all seen the current area since `plan`, and re-lints a fresh scan right before building. Then walks to each ghost and builds it from inventory, reporting `missing` and `unreachable` |
 | `walk X Y [--radius R]` | Pathfind and walk there |
 | `mine X Y [N]` | Mine a resource or entity within reach, N times |
+| `upgrade X Y NAME` | Fast-replace the built entity at tile X,Y with NAME from Claude's inventory (within reach); keeps the recipe, the old one goes back to the inventory |
 | `retire T X Y` | Mine a built entity of tag T at tile X,Y on purpose (a layout change); `prove` skips it from then on |
 | `craft ITEM N` | Hand-craft from Claude's own ingredients |
 | `put X Y ITEM N` / `take X Y ITEM N` | Move items between Claude's inventory and an entity within reach |

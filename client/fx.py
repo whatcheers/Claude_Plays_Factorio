@@ -434,6 +434,36 @@ def cmd_retire(b, a):
     print(f"retired {a.x},{a.y} from {a.tag}")
 
 
+UPGRADE_LUA = r"""
+local c
+for _, e in pairs(game.surfaces[1].find_entities_filtered{name='character'}) do
+  if not e.player then c = e end
+end
+if not c then rcon.print('error: no Claude character') return end
+local old = game.surfaces[1].find_entities_filtered{area={{%s, %s}, {%s, %s}}, type={'assembling-machine','inserter','transport-belt','container','mining-drill'}}[1]
+if not old then rcon.print('error: nothing upgradable there') return end
+if not c.can_reach_entity(old) then rcon.print('error: out of reach') return end
+local inv = c.get_main_inventory()
+if inv.get_item_count('%s') < 1 then rcon.print('error: no %s in inventory') return end
+local recipe = old.type == 'assembling-machine' and old.get_recipe() and old.get_recipe().name or nil
+local new = game.surfaces[1].create_entity{name='%s', position=old.position, direction=old.direction, force=old.force,
+  fast_replace=true, character=c, spill=false, raise_built=true}
+if not new then rcon.print('error: could not place') return end
+inv.remove{name='%s', count=1}
+if recipe and new.get_recipe() == nil then new.set_recipe(recipe) end
+rcon.print('ok ' .. new.name .. (recipe and (' ' .. recipe) or ''))
+"""
+
+
+def cmd_upgrade(b, a):
+    """Fast-replace a built entity with a better one from Claude's inventory,
+    the way a player does: recipe kept, old entity back in the inventory."""
+    out = b.lua(UPGRADE_LUA % (a.x + 0.2, a.y + 0.2, a.x + 0.8, a.y + 0.8, a.name, a.name, a.name, a.name)).strip()
+    if not out.startswith("ok"):
+        raise Fail(out)
+    print(f"upgraded {a.x},{a.y}: {out[3:]}")
+
+
 def cmd_craft(b, a):
     j = b.run_job("craft", {"item": a.item, "n": a.n})
     if j["state"] != "done":
@@ -583,6 +613,10 @@ def main(argv=None):
     s.add_argument("x", type=float)
     s.add_argument("y", type=float)
     s.add_argument("n", type=int, nargs="?", default=1)
+    s = sub.add_parser("upgrade")
+    s.add_argument("x", type=int)
+    s.add_argument("y", type=int)
+    s.add_argument("name")
     s = sub.add_parser("retire")
     s.add_argument("tag")
     s.add_argument("x", type=int)
