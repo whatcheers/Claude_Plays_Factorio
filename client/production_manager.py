@@ -27,6 +27,12 @@ local names = {} for k, v in pairs(defines.entity_status) do names[v] = k end
 local labs = {}
 for _, e in pairs(game.surfaces[1].find_entities_filtered{type='lab'}) do
   local k = names[e.status] or '?' labs[k] = (labs[k] or 0) + 1
+  if e.status == defines.entity_status.missing_science_packs then
+    local inv = e.get_inventory(defines.inventory.lab_input)
+    for _, p in ipairs({'automation-science-pack', 'logistic-science-pack'}) do
+      if inv.get_item_count(p) == 0 then labs['lacks:' .. p] = (labs['lacks:' .. p] or 0) + 1 end
+    end
+  end
 end
 for k, v in pairs(labs) do out[#out+1] = 'lab:' .. k .. '=' .. v end
 local starved = {}
@@ -78,11 +84,14 @@ def advise(made, labs, starved, extra):
     elif "logistic-science-pack" in starved or any(r in starved for r in ("inserter", "transport-belt", "electronic-circuit")):
         parts = ", ".join(r.replace("-", " ") for r in starved)
         tip = f"green science is starved ({parts} short of inputs); check its iron and copper supply"
-    elif missing and green < red:
-        tip = (f"{missing} lab(s) sit idle waiting for flasks while green ({green:.0f}/min) trails red ({red:.0f}/min); "
-               "more green assemblers would put them to work")
     elif missing:
-        tip = f"{missing} lab(s) sit idle waiting for flasks; more flask assemblers would put them to work"
+        no_green = labs.get("lacks:logistic-science-pack", 0)
+        no_red = labs.get("lacks:automation-science-pack", 0)
+        if no_green >= no_red:
+            tip = (f"{no_green} lab(s) sit idle without green flasks; more green assemblers, and a way to get "
+                   "green to those labs, would put them to work (more red would not help)")
+        else:
+            tip = f"{no_red} lab(s) sit idle without red flasks; more red assemblers would put them to work"
     elif working and red and green:
         tip = "every lab is busy; more labs would speed research up"
     elif iron < 60:
