@@ -25,7 +25,7 @@ def layout():
 def main():
     with Bridge() as b:
         must("spawn")
-        place(b, "labs45", layout(), walk=(-62, 27))
+        place(b, "labs45", layout(), walk=(-62, 29.5))
         b.run_ticks(1800)
         if run("prove", "labs45", 1800):
             raise PlayFail("labs45 prove failed")
