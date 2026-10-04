@@ -130,7 +130,7 @@ def write_stamp(name, g, keys=()):
 def count(g, code):
     """How many entities of a stamp code (multi-tile entities counted once)."""
     tiles = sum(1 for v in g.values() if v[0] == code)
-    return tiles // {"A": 9, "M": 9, "F": 4}.get(code, 1)
+    return tiles // {"A": 9, "M": 9, "F": 4, "L": 9}.get(code, 1)
 
 
 def materials(b, g):
@@ -138,14 +138,15 @@ def materials(b, g):
             "long-handed-inserter": count(g, "J"), "inserter": count(g, "I"),
             "assembling-machine-1": count(g, "A"), "transport-belt": count(g, "b") + count(g, "e"),
             "underground-belt": count(g, "u") + count(g, "U") + count(g, "W"),
-            "small-electric-pole": count(g, "p")}
+            "small-electric-pole": count(g, "p"), "lab": count(g, "L")}
     short = {k: max(0, n - inv(b).get(k, 0)) for k, n in need.items()}
     ins_crafts = short["inserter"] + short["long-handed-inserter"]
-    circuits = max(0, 3 * short["electric-mining-drill"] + 3 * short["assembling-machine-1"] + ins_crafts
+    short["transport-belt"] += 4 * short["lab"]
+    circuits = max(0, 3 * short["electric-mining-drill"] + 3 * short["assembling-machine-1"] + 10 * short["lab"] + ins_crafts
                    - inv(b).get("electronic-circuit", 0))
     ug = (short.get("underground-belt", 0) + 1) // 2
     belt_crafts = (short["transport-belt"] + 5 * ug + 1) // 2
-    gears = max(0, 5 * short["electric-mining-drill"] + 5 * short["assembling-machine-1"] + ins_crafts
+    gears = max(0, 5 * short["electric-mining-drill"] + 5 * short["assembling-machine-1"] + 10 * short["lab"] + ins_crafts
                 + short["long-handed-inserter"] + belt_crafts - inv(b).get("iron-gear-wheel", 0))
     iron = (2 * gears + circuits + 10 * short["electric-mining-drill"] + 9 * short["assembling-machine-1"]
             + ins_crafts + short["long-handed-inserter"] + belt_crafts + 10 * ug + 5)
@@ -165,7 +166,7 @@ def materials(b, g):
     if short.get("underground-belt"):
         # 10 iron + 5 belts -> 2 undergrounds
         must("craft", "underground-belt", (short["underground-belt"] + 1) // 2)
-    for k in ("electric-mining-drill", "stone-furnace", "inserter", "long-handed-inserter", "assembling-machine-1"):
+    for k in ("electric-mining-drill", "stone-furnace", "inserter", "long-handed-inserter", "assembling-machine-1", "lab"):
         if short[k]:
             must("craft", k, short[k])
 
