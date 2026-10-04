@@ -89,3 +89,10 @@ def test_recipe_key_must_not_be_direction():
 def test_lab_and_plain_assembler():
     s = parse_stamp("L.L.L.A.A.A.\nL.L.L.A.A.A.\nL.L.L.A.A.A.\n")
     assert [(e.code, e.w, e.h) for e in sorted(s.entities, key=lambda e: e.x)] == [("L", 3, 3), ("A", 3, 3)]
+
+
+def test_steam_engine_is_axis_only():
+    s = parse_stamp("EvEvEv\nEvEvEv\nEvEvEv\nEvEvEv\nEvEvEv\n")
+    assert s.entities[0].dchar == "^"
+    assert rotate(s, 180).entities[0].dchar == "^"
+    assert rotate(s, 270).entities[0].dchar == ">"

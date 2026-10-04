@@ -72,3 +72,15 @@ def test_underground_and_unknown():
 def test_last_ruler_label_not_truncated():
     out = render(snapshot([-70, 0, -60, 0]))
     assert "-60" in out.splitlines()[0]
+
+
+def test_power_block_round_trips_through_render():
+    text = "....E^E^E^\n....E^E^E^\n....E^E^E^\n....E^E^E^\n....E^E^E^\n....B^B^B^\nO>x.B^B^B^\n"
+    ents, _ = from_stamp(text, 2, 3)
+    out = render(snapshot([2, 3, 6, 9], ents))
+    assert grid_rows(out) == text.strip().split("\n")
+
+
+def test_lab_renders():
+    ents, _ = from_stamp("L.L.L.\nL.L.L.\nL.L.L.\n")
+    assert grid_rows(render(snapshot([0, 0, 2, 2], ents))) == ["L.L.L."] * 3

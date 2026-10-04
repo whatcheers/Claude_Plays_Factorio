@@ -2,7 +2,7 @@
 from world import dchar, footprint, side_of
 
 RESOURCE_GLYPH = {"iron-ore": "'i", "copper-ore": "'c", "coal": "'k", "stone": "'s", "uranium-ore": "'u", "crude-oil": "'o"}
-SIMPLE = {"stone-furnace": "F.", "assembling-machine-1": "A.", "wooden-chest": "c.", "small-electric-pole": "p."}
+SIMPLE = {"stone-furnace": "F.", "assembling-machine-1": "A.", "wooden-chest": "c.", "small-electric-pole": "p.", "pipe": "x.", "lab": "L."}
 TYPE_GLYPH = {"tree": "T.", "simple-entity": "R.", "character": "@@"}
 
 
@@ -16,6 +16,17 @@ def glyph(e):
         return ("u" if e.get("belt_type") == "input" else "U") + dchar(e)
     if name == "burner-mining-drill":
         return "D" + dchar(e)
+    if name == "boiler":
+        return "B" + dchar(e)
+    if name == "steam-engine":
+        return "E" + dchar(e)
+    if name == "offshore-pump":
+        # stamp notation is the OUTPUT side; read it from the engine's pipe connection
+        for c in e.get("fluid") or []:
+            side = side_of(tuple(c["at"]), [c["to"][0] + 0.5, c["to"][1] + 0.5])
+            if side:
+                return "O" + side
+        return "O?"
     if name in ("burner-inserter", "inserter"):
         # drawn from where the engine says it drops, never from its direction
         side = side_of(tuple(e["tile"]), e["drop"]) if e.get("drop") else None

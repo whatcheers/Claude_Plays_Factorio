@@ -29,7 +29,7 @@ CODES = {
     "c": ("wooden-chest", (1, 1), "none"),
     "p": ("small-electric-pole", (1, 1), "none"),
     "B": ("boiler", (3, 2), "belt"),
-    "E": ("steam-engine", (3, 5), "belt"),
+    "E": ("steam-engine", (3, 5), "belt"),  # symmetric: only the axis matters (v -> ^, < -> >)
     "O": ("offshore-pump", (1, 1), "drop"),  # dchar = output side; engine faces the other way
     "x": ("pipe", (1, 1), "none"),
     "L": ("lab", (3, 3), "none"),
@@ -91,6 +91,10 @@ def inserter_direction(drop_side):
     return DCHAR_DIR[OPPOSITE[drop_side]]
 
 
+AXIS_ONLY = {"E"}
+AXIS = {"^": "^", "v": "^", ">": ">", "<": ">", ".": "."}
+
+
 def footprint_size(code, dchar):
     w, h = CODES[code][1]
     return (h, w) if dchar in (">", "<") else (w, h)
@@ -127,6 +131,8 @@ def parse_stamp(text):
                 raise StampError(f"{code!r} recipe key {d!r} has no '@{d} recipe' line above", line_no, col + 1)
             if rule in ("belt", "drop") and d not in DCHAR_DIR:
                 raise StampError(f"{code!r} needs a direction (^ > v <), got {d!r}", line_no, col + 1)
+            if code in AXIS_ONLY:
+                d = AXIS[d]
             tiles.append((code, d))
         rows.append((line_no, tiles))
     if not rows:
@@ -172,7 +178,7 @@ def load_stamp(path):
 def _rot_dchar(code, d):
     if CODES[code][2] in ("none", "recipe") or d == ".":
         return d
-    return CW[d]
+    return AXIS[CW[d]] if code in AXIS_ONLY else CW[d]
 
 
 def rotate(stamp, rot):
