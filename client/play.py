@@ -10,8 +10,13 @@ import fx  # noqa: E402
 from layout import load_stamp  # noqa: E402
 
 
+_job = {"started": False, "failed": False}
+
+
 class PlayFail(Exception):
-    pass
+    def __init__(self, *args):
+        super().__init__(*args)
+        _job["failed"] = True  # the end-of-script chat line says FAILED
 
 
 class ChatInterrupt(PlayFail):
@@ -77,8 +82,30 @@ def flush_narration():
 atexit.register(flush_narration)
 
 
+def _script_name():
+    return os.path.splitext(os.path.basename(sys.argv[0] or "script"))[0]
+
+
+def _job_done():
+    if _job["started"]:
+        try:
+            fx.main(["say", f"[working] {_script_name()}: " + ("FAILED, looking into it" if _job["failed"] else "done")])
+        except Exception:
+            pass
+
+
+atexit.register(_job_done)
+
+
 def run(*args):
     _check_chat()
+    if not _job["started"] and args and args[0] != "say":
+        # tell the player a script is now driving Claude's character
+        _job["started"] = True
+        try:
+            fx.main(["say", f"[working] {_script_name()}: started"])
+        except Exception:
+            pass
     print(f"$ fx {' '.join(map(str, args))}", flush=True)
     args = [str(a) for a in args]
     tmpl = NARRATE.get(args[0])
@@ -95,6 +122,7 @@ def run(*args):
 
 def must(*args):
     if run(*args) != 0:
+        _job["failed"] = True
         raise PlayFail(f"fx {' '.join(map(str, args))} failed")
 
 
