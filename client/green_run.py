@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import fx  # noqa: E402
 from bridge import Bridge  # noqa: E402
-from play import ChatInterrupt, PlayFail, gather, inv, must, run  # noqa: E402
+from play import ChatInterrupt, PlayFail, gather, gather_wood, inv, must, run  # noqa: E402
 from power_run import clear_trees, tag_state  # noqa: E402
 from scale_run import top_up  # noqa: E402
 from science_run import COPPER_CHEST, IRON_CHEST, finished, shot_all  # noqa: E402
@@ -155,7 +155,12 @@ def materials(b, g):
     if short["stone-furnace"]:
         gather(b, "stone", 5 * short["stone-furnace"])
     if short["small-electric-pole"]:
-        raise PlayFail(f"need {short['small-electric-pole']} more small poles")
+        crafts = (short["small-electric-pole"] + 1) // 2      # 1 wood + 2 cable -> 2 poles
+        if inv(b).get("wood", 0) < crafts:
+            gather_wood(b, crafts)
+        top_up(b, *COPPER_CHEST, "copper-plate", crafts + 1)
+        must("craft", "copper-cable", crafts)
+        must("craft", "small-electric-pole", crafts)
     if circuits:
         must("craft", "copper-cable", (3 * circuits + 1) // 2)
         must("craft", "electronic-circuit", circuits)
