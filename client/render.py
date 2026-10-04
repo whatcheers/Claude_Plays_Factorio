@@ -2,6 +2,7 @@
 from world import dchar, footprint, side_of
 
 RESOURCE_GLYPH = {"iron-ore": "'i", "copper-ore": "'c", "coal": "'k", "stone": "'s", "uranium-ore": "'u", "crude-oil": "'o"}
+SIMPLE_DIR = {"pipe-to-ground": "X"}
 SIMPLE = {"stone-furnace": "F.", "assembling-machine-1": "A.", "wooden-chest": "c.", "small-electric-pole": "p.", "pipe": "x.", "lab": "L."}
 INSERTER_CODE = {"burner-inserter": "i", "inserter": "I", "long-handed-inserter": "J"}
 TYPE_GLYPH = {"tree": "T.", "simple-entity": "R.", "character": "@@"}
@@ -11,6 +12,8 @@ def glyph(e):
     name, typ = e["name"], e["type"]
     if name in SIMPLE:
         return SIMPLE[name]
+    if name in SIMPLE_DIR:
+        return SIMPLE_DIR[name] + dchar(e)
     if name == "transport-belt":
         return "b" + dchar(e)
     if name == "underground-belt":

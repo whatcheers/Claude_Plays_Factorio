@@ -35,6 +35,7 @@ CODES = {
     "E": ("steam-engine", (3, 5), "belt"),  # symmetric: only the axis matters (v -> ^, < -> >)
     "O": ("offshore-pump", (1, 1), "drop"),  # dchar = output side; engine faces the other way
     "x": ("pipe", (1, 1), "none"),
+    "X": ("pipe-to-ground", (1, 1), "belt"),  # direction = side of its above-ground connection
     "L": ("lab", (3, 3), "none"),
 }
 RECIPE_KEYS = set("abcdefghijklmnopqrstuwxyz")  # lowercase, never "v" (a direction)

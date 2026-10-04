@@ -24,6 +24,7 @@ TYPES = {
     "steam-engine": "generator",
     "offshore-pump": "offshore-pump",
     "pipe": "pipe",
+    "pipe-to-ground": "pipe-to-ground",
     "lab": "lab",
 }
 
