@@ -19,16 +19,17 @@ TYPES = {
 }
 
 
-def entity(name, tile, size=1, direction=0, ghost=True, belt_type=None, can_place=True, typ=None):
+def entity(name, tile, size=1, direction=0, ghost=True, belt_type=None, can_place=True, typ=None, w=None, h=None):
     typ = typ or TYPES.get(name, "simple-entity")
-    cx, cy = tile[0] + size / 2, tile[1] + size / 2
+    w, h = w or size, h or size
+    cx, cy = tile[0] + w / 2, tile[1] + h / 2
     e = {
         "name": name,
         "type": typ,
         "ghost": ghost,
         "tile": list(tile),
-        "w": size,
-        "h": size,
+        "w": w,
+        "h": h,
         "direction": direction,
         "position": [cx, cy],
         "pickup": None,
@@ -56,7 +57,7 @@ def entity(name, tile, size=1, direction=0, ghost=True, belt_type=None, can_plac
 
 def from_stamp(text, X=0, Y=0, rot=0, **kw):
     placed = place(parse_stamp(text), X, Y, rot)
-    ents = [entity(p.name, p.tile, p.size, p.direction, belt_type=p.belt_type, **kw) for p in placed]
+    ents = [entity(p.name, p.tile, direction=p.direction, belt_type=p.belt_type, w=p.w, h=p.h, **kw) for p in placed]
     codes = {tuple(p.tile): (p.code, p.dchar) for p in placed}
     return ents, codes
 

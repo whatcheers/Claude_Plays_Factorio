@@ -1,8 +1,10 @@
-- codex/S1: fixed — new AC-12: `prove <T> N` is generic, with a per-type accepted-status set and a nonzero exit naming the failures; AC-11 remains the end-to-end demo
-- codex/S2: fixed — AC-10: `put` uses the engine's insert routing (fuel/source); `take` takes from the output inventory first
-- codex/S3: fixed — AC-10: put/take move what fits and print the count; mine stops with `inventory full`; craft refuses if the result won't fit; nothing is dropped
-- codex/S4: fixed — AC-6 rule (i): underground pairing within the prototype max distance; a paired input continues the belt, and the output is checked under (b)/(c)
-- codex/S5: fixed — AC-8: lint/look/shot record a fingerprint of bbox+4; build rescans and refuses with `area changed since checks` on mismatch
-- codex/S6: fixed — AC-5: plan refuses on an existing tag or footprint tiles holding a ghost or built non-tree/rock entity; the mod records tag ownership
-- codex/S7: fixed — AC-4: full notation for resources/water/tree/rock/character/unknown, plus layer precedence
-- codex/S8: fixed — AC-3: spawn gives exactly the freeplay `get_created_items` kit, once at creation; that is the sole exemption
+- codex/S1: fixed — footprint rule is now "aligned rectangle of the entity's size for its facing"
+- codex/S2: fixed — recipe keys are lowercase letters, never direction chars or `.`, and are not rotated
+- codex/S3: fixed — new AC-22 defines the fingerprint fields and exclusions
+- codex/S4: fixed — AC-22: build re-runs all lint (incl. power and fluid) on a fresh scan, so dependencies outside the fingerprint can't go stale
+- codex/S5: fixed — AC-17: traversal over a bbox+40 scan, and a ghost chain leaving it without reaching a powered built pole is flagged
+- codex/S6: fixed — AC-23 OK sets include boiler, steam engine, offshore pump and lab
+- codex/S7: fixed — AC-23: prove samples every 60 ticks with a majority rule instead of one snapshot
+- codex/S8: fixed — AC-21 uses the tag's red-flask assembler `products_finished` and research progress, not force-wide totals
+- codex/S9: fixed — the Stamp format section defines `mine` N (cycles, default 1, early stop)
+- codex/S10: fixed — out of scope now protects saves that predate the project; play and tests happen on the project's hosted map

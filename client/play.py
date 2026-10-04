@@ -118,7 +118,7 @@ def checks(tag, bbox):
 def find_ore_site(b, stamp, ore, near=None, radius=150):
     """Top-lefts (nearest first) where every drill footprint sits on `ore` and
     the stamp area plus a 1-tile margin is free of entities and water."""
-    drills = [(e.x, e.y, e.size) for e in stamp.entities if e.code == "D"]
+    drills = [(e.x, e.y, e.w, e.h) for e in stamp.entities if e.code == "D"]
     x, y = near or pos(b)
     snap = b.call("scan", {"area": [int(x) - radius, int(y) - radius, int(x) + radius, int(y) + radius]})
     tiles = {tuple(t["tile"]) for t in snap["resources"] if t["name"] == ore}
@@ -130,10 +130,10 @@ def find_ore_site(b, stamp, ore, near=None, radius=150):
                     blocked.add((e["tile"][0] + dx, e["tile"][1] + dy))
     blocked |= {tuple(t) for t in snap["water"]}
     out = []
-    dx0, dy0, _ = drills[0]
+    dx0, dy0, _, _ = drills[0]
     for (ox, oy) in tiles:
         X, Y = ox - dx0, oy - dy0
-        if all((X + dx + i, Y + dy + j) in tiles for dx, dy, s in drills for i in range(s) for j in range(s)):
+        if all((X + dx + i, Y + dy + j) in tiles for dx, dy, w, h in drills for i in range(w) for j in range(h)):
             if not any((X + i, Y + j) in blocked for i in range(-1, stamp.w + 1) for j in range(-1, stamp.h + 1)):
                 out.append((math.hypot(X - x, Y - y), X, Y))
     return [(X, Y) for _, X, Y in sorted(out)]

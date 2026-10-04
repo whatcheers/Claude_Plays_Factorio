@@ -2,67 +2,83 @@
   "findings": [
     {
       "id": "S1",
-      "severity": "major",
+      "severity": "blocker",
       "file": "SPEC.md",
-      "line": 66,
-      "claim": "The requirement to prove every layout working is covered only by a proof criterion specific to the burner-iron demonstration.",
-      "failure_scenario": "An implementation can pass every acceptance criterion while prove rejects a valid belt-only layout because it has no chest containing iron plates, or accepts a layout with stalled assemblers because only furnaces and drills are checked."
+      "line": 57,
+      "claim": "The requirement that every multi-tile footprint be square contradicts the required rectangular boilers and steam engines.",
+      "failure_scenario": "A parser enforcing this rule and AC-2 rejects valid 3x2 boilers and 3x5 steam engines, preventing the phase-2 power build."
     },
     {
       "id": "S2",
-      "severity": "major",
+      "severity": "minor",
       "file": "SPEC.md",
-      "line": 65,
-      "claim": "The put and take commands do not specify which inventory to use when an entity has separate fuel, ingredient, and output inventories.",
-      "failure_scenario": "During AC-11, put must fuel furnaces and burner inserters, but an implementation that selects an entity's primary inventory can reject the fuel or put it in the wrong compartment, preventing the required demonstration from running."
+      "line": 61,
+      "claim": "Rotation does not distinguish recipe keys from direction characters or reserve direction characters against use as recipe keys.",
+      "failure_scenario": "A permitted declaration such as '@v automation-science-pack' produces assembler tiles 'Av'; one implementation preserves the recipe during rotation while another rotates 'v' to '<', losing or changing the recipe."
     },
     {
       "id": "S3",
       "severity": "major",
       "file": "SPEC.md",
-      "line": 65,
-      "claim": "Item-producing and transfer actions have no defined behavior when the destination inventory cannot accept all resulting items.",
-      "failure_scenario": "Putting 100 items into a nearly full chest can remove 100 from Claude while inserting only a few, or duplicate items if the implementation inserts before discovering it cannot complete the corresponding removal; neither atomic failure nor partial-transfer accounting is specified."
+      "line": 76,
+      "claim": "The fingerprint of 'everything' has no defined fields or exclusions for ordinary simulation changes.",
+      "failure_scenario": "One implementation includes character positions, belt contents and machine progress, causing checks on a running factory to become stale immediately; another fingerprints only entity placement and misses recipe or configuration changes relevant to lint."
     },
     {
       "id": "S4",
       "severity": "major",
       "file": "SPEC.md",
-      "line": 61,
-      "claim": "Underground belts are supported by the stamp format, but lint has no requirement to verify a connected input/output pair or define how underground segments participate in belt-continuity checks.",
-      "failure_scenario": "An input without an output, or a pair too far apart to connect, can pass lint and be built as a broken transport route; another implementation can reject a valid tunnel by requiring its input to feed an adjacent surface belt."
+      "line": 76,
+      "claim": "The fingerprint boundary does not cover all external power-network dependencies used by lint.",
+      "failure_scenario": "Power lint passes using a generator or connecting pole outside the tag's bounding box plus four tiles; that source is then removed, but build accepts the unchanged local fingerprint and constructs an unpowered layout."
     },
     {
       "id": "S5",
       "severity": "major",
       "file": "SPEC.md",
-      "line": 63,
-      "claim": "Build authorization remains valid after changes to the inspected layout or its surroundings because only a new plan invalidates the checks.",
-      "failure_scenario": "After look, shot, and lint pass, the user rotates an inserter ghost or removes a supporting belt; build can still pass the specified gate and construct a layout whose current state has never passed inspection or lint."
+      "line": 86,
+      "claim": "Power lint bounds its scan geographically without defining traversal of ghost pole networks extending beyond that boundary.",
+      "failure_scenario": "A lab tag connects through a long, separately tagged ghost pole line to a planned steam engine; lint cannot see the distant source and reports no-power-source despite the complete planned connection."
     },
     {
       "id": "S6",
       "severity": "major",
       "file": "SPEC.md",
-      "line": 60,
-      "claim": "Tag reuse and planning over existing ghosts have no defined ownership or replacement semantics.",
-      "failure_scenario": "Running plan with the same tag at a second location can merge with or replace the first plan depending on the implementation, causing unplan to remove unexpected ghosts or leave the original ghosts behind; overlapping plans also lack a rule determining which tag owns shared ghosts."
+      "line": 80,
+      "claim": "The generic prove success conditions omit boilers, steam engines and labs despite requiring every layout to be proven working.",
+      "failure_scenario": "A tag containing a steam engine without steam or a lab without electricity returns success because none of its entities belong to the types whose status determines the exit code."
     },
     {
       "id": "S7",
       "severity": "major",
       "file": "SPEC.md",
-      "line": 59,
-      "claim": "The required ASCII view has neither notation for resources and obstacles nor a rule for displaying multiple layers occupying the same tile.",
-      "failure_scenario": "On the required iron-ore patch, a drill ghost and ore occupy the same tiles; one implementation displays only ore and hides the planned drill, while another displays only the drill and hides resource coverage, undermining the engine-based layout check."
+      "line": 90,
+      "claim": "AC-21 requires a production-window test to pass using AC-12's instantaneous status conditions, which can reject a functioning production line.",
+      "failure_scenario": "The line produces and consumes red flasks during the 3600 ticks, but the gear assembler is temporarily waiting for ingredients at the final tick; prove fails even though the required research automation is operating."
     },
     {
       "id": "S8",
       "severity": "major",
       "file": "SPEC.md",
-      "line": 66,
-      "claim": "The starting-inventory exemption in AC-11 has no defined source consistent with the prohibition on creating items and modifying the user's inventory.",
-      "failure_scenario": "One implementation grants Claude a freeplay starter kit during spawn, creating items from nothing, while another creates an empty character and expects a starter kit the supporting workflow never supplies; the spec does not establish the initial inventory against which fair play is checked."
+      "line": 90,
+      "claim": "Force-wide red-flask consumption does not establish that the newly built line supplied the research.",
+      "failure_scenario": "Existing labs consume previously stocked red flasks while the new line has a broken delivery connection; positive force consumption and locally acceptable entity statuses can satisfy AC-21 without any new flask reaching a lab."
+    },
+    {
+      "id": "S9",
+      "severity": "minor",
+      "file": "SPEC.md",
+      "line": 78,
+      "claim": "The optional N argument to mine has neither a defined unit nor a default or stopping condition when omitted.",
+      "failure_scenario": "For 'mine X Y' on a large ore patch, one implementation mines once while another continues until the patch is exhausted or inventory fills, leaving the caller waiting through thousands of mining cycles."
+    },
+    {
+      "id": "S10",
+      "severity": "major",
+      "file": "SPEC.md",
+      "line": 97,
+      "claim": "The prohibition on changing existing saves is not reconciled with live tests that alter the user's hosted game.",
+      "failure_scenario": "An implementer runs the required mining, building and research tests in the currently hosted save, and autosave persists those changes; another implementer requires a disposable copy, but the spec never establishes that prerequisite."
     }
   ]
 }

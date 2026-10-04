@@ -1,0 +1,8 @@
+- codex/S1: fixed — new AC-12: `prove <T> N` is generic, with a per-type accepted-status set and a nonzero exit naming the failures; AC-11 remains the end-to-end demo
+- codex/S2: fixed — AC-10: `put` uses the engine's insert routing (fuel/source); `take` takes from the output inventory first
+- codex/S3: fixed — AC-10: put/take move what fits and print the count; mine stops with `inventory full`; craft refuses if the result won't fit; nothing is dropped
+- codex/S4: fixed — AC-6 rule (i): underground pairing within the prototype max distance; a paired input continues the belt, and the output is checked under (b)/(c)
+- codex/S5: fixed — AC-8: lint/look/shot record a fingerprint of bbox+4; build rescans and refuses with `area changed since checks` on mismatch
+- codex/S6: fixed — AC-5: plan refuses on an existing tag or footprint tiles holding a ghost or built non-tree/rock entity; the mod records tag ownership
+- codex/S7: fixed — AC-4: full notation for resources/water/tree/rock/character/unknown, plus layer precedence
+- codex/S8: fixed — AC-3: spawn gives exactly the freeplay `get_created_items` kit, once at creation; that is the sole exemption

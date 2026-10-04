@@ -175,7 +175,7 @@ function api.plan(a)
   local surface = game.surfaces[1]
   if storage.tags[a.tag] then return { error = "tag " .. a.tag .. " already exists; unplan it first" } end
   for _, it in ipairs(a.items) do
-    local area = { { it.tile[1] + 0.05, it.tile[2] + 0.05 }, { it.tile[1] + it.size - 0.05, it.tile[2] + it.size - 0.05 } }
+    local area = { { it.tile[1] + 0.05, it.tile[2] + 0.05 }, { it.tile[1] + it.w - 0.05, it.tile[2] + it.h - 0.05 } }
     for _, e in pairs(surface.find_entities_filtered { area = area }) do
       if not IGNORE_FOR_PLAN[e.type] then
         return { error = string.format("tile %d,%d already holds %s%s", it.tile[1], it.tile[2],
@@ -188,6 +188,7 @@ function api.plan(a)
   for _, it in ipairs(a.items) do
     local spec = { name = "entity-ghost", inner_name = it.name, position = it.position, direction = it.direction, force = force }
     if it.belt_type then spec.type = it.belt_type end
+    if it.recipe then spec.recipe = it.recipe end
     local g = surface.create_entity(spec)
     if not g then
       for _, m in pairs(made) do if m.valid then m.destroy() end end

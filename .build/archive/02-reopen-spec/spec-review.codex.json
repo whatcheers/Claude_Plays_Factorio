@@ -1,0 +1,68 @@
+{
+  "findings": [
+    {
+      "id": "S1",
+      "severity": "major",
+      "file": "SPEC.md",
+      "line": 66,
+      "claim": "The requirement to prove every layout working is covered only by a proof criterion specific to the burner-iron demonstration.",
+      "failure_scenario": "An implementation can pass every acceptance criterion while prove rejects a valid belt-only layout because it has no chest containing iron plates, or accepts a layout with stalled assemblers because only furnaces and drills are checked."
+    },
+    {
+      "id": "S2",
+      "severity": "major",
+      "file": "SPEC.md",
+      "line": 65,
+      "claim": "The put and take commands do not specify which inventory to use when an entity has separate fuel, ingredient, and output inventories.",
+      "failure_scenario": "During AC-11, put must fuel furnaces and burner inserters, but an implementation that selects an entity's primary inventory can reject the fuel or put it in the wrong compartment, preventing the required demonstration from running."
+    },
+    {
+      "id": "S3",
+      "severity": "major",
+      "file": "SPEC.md",
+      "line": 65,
+      "claim": "Item-producing and transfer actions have no defined behavior when the destination inventory cannot accept all resulting items.",
+      "failure_scenario": "Putting 100 items into a nearly full chest can remove 100 from Claude while inserting only a few, or duplicate items if the implementation inserts before discovering it cannot complete the corresponding removal; neither atomic failure nor partial-transfer accounting is specified."
+    },
+    {
+      "id": "S4",
+      "severity": "major",
+      "file": "SPEC.md",
+      "line": 61,
+      "claim": "Underground belts are supported by the stamp format, but lint has no requirement to verify a connected input/output pair or define how underground segments participate in belt-continuity checks.",
+      "failure_scenario": "An input without an output, or a pair too far apart to connect, can pass lint and be built as a broken transport route; another implementation can reject a valid tunnel by requiring its input to feed an adjacent surface belt."
+    },
+    {
+      "id": "S5",
+      "severity": "major",
+      "file": "SPEC.md",
+      "line": 63,
+      "claim": "Build authorization remains valid after changes to the inspected layout or its surroundings because only a new plan invalidates the checks.",
+      "failure_scenario": "After look, shot, and lint pass, the user rotates an inserter ghost or removes a supporting belt; build can still pass the specified gate and construct a layout whose current state has never passed inspection or lint."
+    },
+    {
+      "id": "S6",
+      "severity": "major",
+      "file": "SPEC.md",
+      "line": 60,
+      "claim": "Tag reuse and planning over existing ghosts have no defined ownership or replacement semantics.",
+      "failure_scenario": "Running plan with the same tag at a second location can merge with or replace the first plan depending on the implementation, causing unplan to remove unexpected ghosts or leave the original ghosts behind; overlapping plans also lack a rule determining which tag owns shared ghosts."
+    },
+    {
+      "id": "S7",
+      "severity": "major",
+      "file": "SPEC.md",
+      "line": 59,
+      "claim": "The required ASCII view has neither notation for resources and obstacles nor a rule for displaying multiple layers occupying the same tile.",
+      "failure_scenario": "On the required iron-ore patch, a drill ghost and ore occupy the same tiles; one implementation displays only ore and hides the planned drill, while another displays only the drill and hides resource coverage, undermining the engine-based layout check."
+    },
+    {
+      "id": "S8",
+      "severity": "major",
+      "file": "SPEC.md",
+      "line": 66,
+      "claim": "The starting-inventory exemption in AC-11 has no defined source consistent with the prohibition on creating items and modifying the user's inventory.",
+      "failure_scenario": "One implementation grants Claude a freeplay starter kit during spawn, creating items from nothing, while another creates an empty character and expects a starter kit the supporting workflow never supplies; the spec does not establish the initial inventory against which fair play is checked."
+    }
+  ]
+}

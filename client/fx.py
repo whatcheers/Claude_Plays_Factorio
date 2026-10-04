@@ -149,7 +149,7 @@ def cmd_plan(b, a):
         raise Fail(f"tag {tag} already exists; unplan it first")
     placed = place(stamp, a.x, a.y, a.rot)
     items = [
-        {"name": p.name, "position": list(p.position), "direction": p.direction, "belt_type": p.belt_type, "tile": list(p.tile), "size": p.size}
+        {"name": p.name, "position": list(p.position), "direction": p.direction, "belt_type": p.belt_type, "tile": list(p.tile), "w": p.w, "h": p.h, "size": max(p.w, p.h), "recipe": p.recipe}
         for p in placed
     ]
     r = b.call("plan", {"tag": tag, "items": items})

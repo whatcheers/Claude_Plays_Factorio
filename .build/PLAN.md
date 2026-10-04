@@ -40,6 +40,38 @@ Verify: python client/e2e_burner_iron.py
 Covers: AC-13
 Verify: python -m pytest -q tests/test_docs.py
 
+## Task 9: Non-square footprints, new codes (B E O x L), recipe keys
+Covers: AC-14
+Verify: python -m pytest -q tests/test_stamp2.py
+
+## Task 10: Fluid-connection and power-network lint (pure)
+Covers: AC-14
+Verify: python -m pytest -q tests/test_lint2.py
+
+## Task 11: Mod scan uses prototype tile size; reports fluid connections and pole networks
+Covers: AC-15
+Verify: python -m pytest -q live_tests/test_power_stamps.py
+
+## Task 12: Live fluid and power lint incl. rotated-boiler sabotage
+Covers: AC-16, AC-17
+Verify: python -m pytest -q live_tests/test_power_lint.py
+
+## Task 13: poles, research, tech, recipe commands
+Covers: AC-18, AC-19
+Verify: python -m pytest -q live_tests/test_cmds2.py
+
+## Task 14: build re-lints before building; prove samples every 60 ticks
+Covers: AC-22, AC-23
+Verify: python -m pytest -q live_tests/test_gate2.py tests/test_prove.py
+
+## Task 15: Steam power at the lake, pole line, powered lab researching Automation
+Covers: AC-20
+Verify: python client/power_run.py
+
+## Task 16: Automated red-science line feeding labs
+Covers: AC-21
+Verify: python client/science_run.py
+
 ## Full offline suite
 Covers: AC-1
 Verify: python -m pytest -q tests
