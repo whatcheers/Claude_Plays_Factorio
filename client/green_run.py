@@ -171,7 +171,10 @@ def materials(b, g):
     if short.get("underground-belt"):
         # 10 iron + 5 belts -> 2 undergrounds
         must("craft", "underground-belt", (short["underground-belt"] + 1) // 2)
-    for k in ("electric-mining-drill", "stone-furnace", "inserter", "long-handed-inserter", "assembling-machine-1", "lab"):
+    if ins_crafts:
+        # a long-handed inserter is made from an inserter: craft those too
+        must("craft", "inserter", ins_crafts)
+    for k in ("electric-mining-drill", "stone-furnace", "long-handed-inserter", "assembling-machine-1", "lab"):
         if short[k]:
             must("craft", k, short[k])
 
