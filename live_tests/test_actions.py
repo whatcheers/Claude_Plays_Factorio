@@ -110,7 +110,7 @@ def test_build_missing_then_build_put_take(tmp_path):
     assert fx("look", x - 1, y - 1, x + 3, y + 1)[0] == 0
     assert fx("shot", x + 1.5, y + 0.5, 1)[0] == 0
     chests = inv().get("wooden-chest", 0)
-    code, out = fx("build", "lt-act")
+    code, out = fx("-v", "build", "lt-act")
     built = out.count("built ")
     assert built == min(chests, 3), out
     if chests < 3:

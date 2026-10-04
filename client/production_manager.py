@@ -108,6 +108,7 @@ def advise(made, labs, starved, extra):
 
 def main():
     last_tip, last_time = None, 0.0
+    down = False  # report an outage once, not every round
     print("[Production Manager] in the office", flush=True)
     while True:
         try:
@@ -119,8 +120,13 @@ def main():
                     print(msg, flush=True)
                     b.call("say", {"text": msg}, check=False)
                     last_tip, last_time = tip, now
+            if down:
+                print("[Production Manager] back at the books", flush=True)
+                down = False
         except Exception as e:  # game reloading etc.
-            print(f"[Production Manager] couldn't read the books: {e}", flush=True)
+            if not down:
+                print(f"[Production Manager] couldn't read the books: {e}", flush=True)
+                down = True
         time.sleep(PERIOD)
 
 

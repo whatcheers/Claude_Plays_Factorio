@@ -114,13 +114,19 @@ def check(b, streaks, alerted):
 
 def main():
     streaks, alerted = {}, set()
+    down = False  # report an outage once, not every minute
     print("[Maintenance Crew] on shift", flush=True)
     while True:
         try:
             with Bridge() as b:
                 check(b, streaks, alerted)
+            if down:
+                print("[Maintenance Crew] checks working again", flush=True)
+                down = False
         except Exception as e:  # game reloading etc.
-            print(f"[Maintenance Crew] check failed: {e}", flush=True)
+            if not down:
+                print(f"[Maintenance Crew] check failed: {e}", flush=True)
+                down = True
         time.sleep(PERIOD)
 
 
