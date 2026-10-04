@@ -67,3 +67,8 @@ def test_underground_and_unknown():
         entity("steel-chest", (2, 0), typ="container"),
     ]
     assert grid_rows(render(snapshot([0, 0, 2, 0], ents))) == ["u>U>##"]
+
+
+def test_last_ruler_label_not_truncated():
+    out = render(snapshot([-70, 0, -60, 0]))
+    assert "-60" in out.splitlines()[0]

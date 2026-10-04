@@ -48,8 +48,9 @@ def render(snap):
             if 2 * i <= last_end:
                 continue
             for j, ch in enumerate(label):
-                if 2 * i + j < len(ruler):
-                    ruler[2 * i + j] = ch
+                if 2 * i + j >= len(ruler):
+                    ruler.append(" ")
+                ruler[2 * i + j] = ch
             last_end = 2 * i + len(label)
     lines = ["      " + "".join(ruler).rstrip()]
     for y in range(y1, y2 + 1):

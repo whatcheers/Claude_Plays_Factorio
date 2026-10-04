@@ -1,0 +1,9 @@
+{
+  "name": "claude-bridge",
+  "version": "0.1.0",
+  "title": "Claude Bridge",
+  "author": "Claude",
+  "description": "RCON remote interface that lets Claude drive its own character with fair-play checks.",
+  "factorio_version": "2.0",
+  "dependencies": ["base >= 2.0"]
+}

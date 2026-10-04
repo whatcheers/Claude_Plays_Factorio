@@ -1,0 +1,3 @@
+# A single stone furnace (used to smelt the bootstrap plates by hand).
+F.F.
+F.F.
