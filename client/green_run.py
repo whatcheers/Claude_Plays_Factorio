@@ -59,33 +59,61 @@ def layout_iron2():
 
 
 def layout_green():
+    """South of belt M. M (row 30, west) loops down x=-73 and back east on row 40,
+    so both assembler rows reach iron + copper. Copper joins M's north lane from
+    a filtered inserter on the red copper/gear belt, down x=-63, under the coal
+    belt and the M belt's row-29 neighbourhood by underground, sideloading at
+    (-63,30). Green flasks go north up x=-67 under rows 28..30 into lab 1."""
     g = {}
-    asm(g, -68, 26, "l")        # G: green flasks
-    asm(g, -64, 26, "n")        # N: inserters
-    asm(g, -72, 26, "t")        # Bt: belts
-    asm(g, -60, 26, "c")        # C: circuits
-    asm(g, -60, 22, "k")        # K: copper cable
-    asm(g, -62, 32, "g")        # Gm: gears onto M
-    g[(-67, 25)] = "I^"         # G -> lab 1
-    g[(-65, 27)] = "I<"         # N -> G
-    g[(-69, 27)] = "I>"         # Bt -> G
-    g[(-61, 27)] = "I<"         # C -> N
-    g[(-59, 25)] = "Iv"         # K -> C
-    g[(-59, 21)] = "Iv"         # copper belt end -> K
-    for x in (-59, -63, -71):
-        g[(x, 29)] = "I^"       # M -> C, N, Bt
-    g[(-61, 31)] = "Iv"         # M -> gear assembler
-    g[(-60, 31)] = "I^"         # gear assembler -> M (north lane)
-    for x in range(-70, -59):
-        g[(x, 20)] = "b>"       # copper/gear belt extension
-    g[(-59, 20)] = "e>"
-    for p in [(-69, 29), (-65, 25), (-61, 25), (-61, 21), (-61, 29)]:
+    # copper: filtered inserter takes copper (not gears) off the red belt's end
+    g[(-70, 20)] = "I>"
+    for x in range(-69, -63):
+        g[(x, 20)] = "b>"
+    g[(-63, 20)] = "bv"
+    for y in range(21, 27):
+        g[(-63, y)] = "bv"
+    g[(-63, 27)] = "uv"
+    g[(-63, 29)] = "Uv"        # sideloads into M (-63, 30): north lane
+    # M loop
+    g[(-73, 30)] = "bv"
+    for y in range(31, 40):
+        g[(-73, y)] = "bv"
+    g[(-73, 40)] = "b>"
+    for x in range(-72, -58):
+        g[(x, 40)] = "b>"
+    g[(-58, 40)] = "e>"
+    # row 1 (rows 32-34) from M via row 31; row 2 (rows 36-38) from row 40 via row 39
+    asm(g, -72, 32, "g")       # Gb: gears for the belt assembler
+    asm(g, -64, 32, "h")       # Ga: gears for the inserter assembler
+    asm(g, -60, 32, "k")       # K: copper cable
+    asm(g, -72, 36, "t")       # Bt: belts
+    asm(g, -68, 36, "l")       # G: green flasks
+    asm(g, -64, 36, "n")       # N: inserters
+    asm(g, -60, 36, "c")       # C: circuits
+    for x in (-71, -63, -59):
+        g[(x, 31)] = "Iv"      # M -> row 1
+        g[(x, 39)] = "I^"      # row-40 belt -> row 2
+    g[(-71, 35)] = "Iv"        # Gb -> Bt
+    g[(-63, 35)] = "Iv"        # Ga -> N
+    g[(-59, 35)] = "Iv"        # K -> C
+    g[(-69, 37)] = "I>"        # Bt -> G
+    g[(-65, 37)] = "I<"        # N -> G
+    g[(-61, 37)] = "I<"        # C -> N
+    # green flasks: G -> belt up x=-67, under rows 28..30, into lab 1
+    g[(-67, 35)] = "I^"
+    for y in (32, 33, 34):
+        g[(-67, y)] = "b^"
+    g[(-67, 31)] = "u^"
+    g[(-67, 27)] = "U^"
+    g[(-67, 26)] = "e^"
+    g[(-67, 25)] = "I^"
+    for p in [(-69, 33), (-65, 33), (-61, 33), (-69, 39), (-65, 39), (-61, 39), (-66, 25)]:
         g[p] = "p."
     return g
 
 
 KEYS = ["@l logistic-science-pack", "@n inserter", "@t transport-belt", "@c electronic-circuit",
-        "@k copper-cable", "@g iron-gear-wheel"]
+        "@k copper-cable", "@g iron-gear-wheel", "@h iron-gear-wheel"]
 
 
 def write_stamp(name, g, keys=()):
@@ -109,16 +137,18 @@ def materials(b, g):
     need = {"electric-mining-drill": count(g, "M"), "stone-furnace": count(g, "F"),
             "long-handed-inserter": count(g, "J"), "inserter": count(g, "I"),
             "assembling-machine-1": count(g, "A"), "transport-belt": count(g, "b") + count(g, "e"),
+            "underground-belt": count(g, "u") + count(g, "U"),
             "small-electric-pole": count(g, "p")}
     short = {k: max(0, n - inv(b).get(k, 0)) for k, n in need.items()}
     ins_crafts = short["inserter"] + short["long-handed-inserter"]
     circuits = max(0, 3 * short["electric-mining-drill"] + 3 * short["assembling-machine-1"] + ins_crafts
                    - inv(b).get("electronic-circuit", 0))
-    belt_crafts = (short["transport-belt"] + 1) // 2
+    ug = (short.get("underground-belt", 0) + 1) // 2
+    belt_crafts = (short["transport-belt"] + 5 * ug + 1) // 2
     gears = max(0, 5 * short["electric-mining-drill"] + 5 * short["assembling-machine-1"] + ins_crafts
                 + short["long-handed-inserter"] + belt_crafts - inv(b).get("iron-gear-wheel", 0))
     iron = (2 * gears + circuits + 10 * short["electric-mining-drill"] + 9 * short["assembling-machine-1"]
-            + ins_crafts + short["long-handed-inserter"] + belt_crafts + 5)
+            + ins_crafts + short["long-handed-inserter"] + belt_crafts + 10 * ug + 5)
     top_up(b, *IRON_CHEST, "iron-plate", iron)
     top_up(b, *COPPER_CHEST, "copper-plate", (3 * circuits + 1) // 2 + 1)
     if short["stone-furnace"]:
@@ -132,6 +162,9 @@ def materials(b, g):
         must("craft", "iron-gear-wheel", gears)
     if belt_crafts:
         must("craft", "transport-belt", belt_crafts)
+    if short.get("underground-belt"):
+        # 10 iron + 5 belts -> 2 undergrounds
+        must("craft", "underground-belt", (short["underground-belt"] + 1) // 2)
     for k in ("electric-mining-drill", "stone-furnace", "inserter", "long-handed-inserter", "assembling-machine-1"):
         if short[k]:
             must("craft", k, short[k])
@@ -143,6 +176,8 @@ def place(b, tag, g, keys=(), walk=None):
     if state == "built":
         return bbox
     materials(b, g)
+    if state is None and tag == "green":
+        clear_dead_pole(b)
     if state is None:
         must("walk", *(walk or ((bbox[0] + bbox[2]) / 2, bbox[3] + 2)), "--radius", 3)
         clear_trees(b, bbox)
@@ -156,11 +191,30 @@ def place(b, tag, g, keys=(), walk=None):
     return bbox
 
 
+def clear_dead_pole(b):
+    """The player's pole at (-62,34) only links to (-65,29) and powers nothing;
+    it sits in the inserter-gear assembler's slot."""
+    s = b.call("scan", {"area": [-62, 34, -62, 34]})
+    if any(e["name"] == "small-electric-pole" for e in s["entities"]):
+        must("walk", -61.5, 36, "--radius", 2)
+        must("mine", -61.5, 34.5)
+        must("say", "I picked up your spare pole at (-62,34); it was a dead end and sat where an assembler goes.")
+
+
+def set_copper_filter(b):
+    out = b.lua("local e = game.surfaces[1].find_entity('inserter', {-69.5, 20.5})"
+                " if e then e.use_filters = true e.set_filter(1, 'copper-plate') rcon.print(tostring(e.get_filter(1).name)) else rcon.print('none') end")
+    print("copper filter:", out.strip())
+    if "copper-plate" not in out:
+        raise PlayFail("could not set the copper filter")
+
+
 def main():
     with Bridge() as b:
         must("spawn")
         place(b, "elec-iron2", layout_iron2())
         place(b, "green", layout_green(), KEYS)
+        set_copper_filter(b)
         # belts take a while to fill: warm up before judging
         b.run_ticks(3600)
         if run("prove", "elec-iron2", 1800):
