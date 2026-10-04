@@ -19,6 +19,37 @@ end
 script.on_init(init)
 script.on_configuration_changed(init)
 
+-- Trigger techs (craft-item / build-entity / mine-entity) only listen to real
+-- players. Claude's character has no LuaPlayer, so credit its own actions here.
+local function trigger_target(trig)
+  local v = trig.item or trig.entity
+  if type(v) == "table" then v = v.name end
+  return v
+end
+
+local function credit(kind, name, count)
+  local ok, err = pcall(function()
+    storage.trigger_counts = storage.trigger_counts or {}
+    local force = game.forces.player
+    for tname, tech in pairs(force.technologies) do
+      local trig = tech.prototype.research_trigger
+      if trig and trig.type == kind and not tech.researched and tech.enabled and trigger_target(trig) == name then
+        local ready = true
+        for _, pre in pairs(tech.prerequisites) do if not pre.researched then ready = false end end
+        if ready then
+          local n = (storage.trigger_counts[tname] or 0) + (count or 1)
+          storage.trigger_counts[tname] = n
+          if n >= (trig.count or 1) then
+            tech.researched = true
+            game.print("[color=#7fc8ff][Claude][/color] unlocked " .. tname .. " (" .. kind .. " " .. name .. ")")
+          end
+        end
+      end
+    end
+  end)
+  if not ok then log("claude-bridge credit failed: " .. tostring(err)) end
+end
+
 local function char()
   local c = storage.char
   if c and c.valid then return c end
@@ -280,6 +311,7 @@ function api.revive(a)
     return { error = "revive failed (blocked?)" }
   end
   t.ents[a.index] = ent
+  credit("build-entity", ent.name, 1)
   return { built = true, item = item }
 end
 
@@ -381,7 +413,7 @@ function api.mine(a)
   end
   local reach = target.type == "resource" and c.resource_reach_distance or c.reach_distance
   if bbox_dist(c.position, target.bounding_box) > reach then return { error = "out of reach" } end
-  return set_job { kind = "mine", target = target, left = a.n or 1, progress = 0, per = mining_ticks(c, target), got = 0 }
+  return set_job { kind = "mine", target = target, target_name = target.name, left = a.n or 1, progress = 0, per = mining_ticks(c, target), got = 0 }
 end
 
 local function product_count(p)
@@ -417,6 +449,7 @@ local function step_mine(j, c)
     end
   end
   j.got = j.got + 1
+  credit("mine-entity", t.valid and t.name or j.target_name, 1)
   j.left = j.left - 1
   if j.left <= 0 or not t.valid then
     c.mining_state = { mining = false }
@@ -442,7 +475,13 @@ function api.craft(a)
 end
 
 local function step_craft(j, c)
-  if c.crafting_queue_size == 0 then j.state = "done"; j.result = { crafted = j.n, item = j.item } end
+  if c.crafting_queue_size == 0 then
+    j.state = "done"; j.result = { crafted = j.n, item = j.item }
+    local recipe = prototypes.recipe[j.item]
+    for _, prod in pairs(recipe and recipe.products or {}) do
+      if prod.type == "item" then credit("craft-item", prod.name, (prod.amount or 1) * j.n) end
+    end
+  end
 end
 
 script.on_event(defines.events.on_tick, function()
