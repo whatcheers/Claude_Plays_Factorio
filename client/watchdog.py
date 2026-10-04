@@ -23,9 +23,9 @@ SKIP_TAGS = {"acA", "team-chest"}
 
 
 def say(b, text):
-    print(f"[watchdog] {text}", flush=True)
+    print(f"[maintenance] {text}", flush=True)
     try:
-        b.call("say", {"text": "[watchdog] " + text}, check=False)
+        b.call("say", {"text": "[maintenance] " + text}, check=False)
     except Exception:
         pass
 
@@ -67,13 +67,13 @@ def check(b, streaks, alerted):
 
 def main():
     streaks, alerted = {}, set()
-    print("[watchdog] started", flush=True)
+    print("[maintenance] started", flush=True)
     while True:
         try:
             with Bridge() as b:
                 check(b, streaks, alerted)
         except Exception as e:  # game reloading etc.
-            print(f"[watchdog] check failed: {e}", flush=True)
+            print(f"[maintenance] check failed: {e}", flush=True)
         time.sleep(PERIOD)
 
 
