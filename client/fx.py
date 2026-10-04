@@ -435,7 +435,7 @@ def main(argv=None):
     try:
         with Bridge() as b:
             globals()["cmd_" + a.cmd](b, a)
-    except (Fail, BridgeError, StampError) as e:
+    except (Fail, BridgeError, StampError, OSError) as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
     return 0

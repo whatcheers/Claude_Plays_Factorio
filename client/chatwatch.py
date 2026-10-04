@@ -35,10 +35,10 @@ def main():
         try:
             if b is None:
                 b = Bridge()
-                if down:
-                    print("[chatwatch] game back", flush=True)
-                    down = False
             r = b.call("chat_read", {"after": after})
+            if down:  # only "back" once a read actually worked
+                print("[chatwatch] chat connected", flush=True)
+                down = False
             if r["seq"] < after:  # new map: counter restarted
                 after = 0
                 r = b.call("chat_read", {"after": 0})
