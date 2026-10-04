@@ -60,6 +60,11 @@ Automated red science feeding labs, with research running continuously. Phase-2 
 3. Boiler coal is solved by the player's coal line. Next work is in `docs/PLAN-next.md`: green science, then electric copper.
 4. **Then:** code review (Codex + Sonnet) and acceptance for phase 2, as `crosscheck-build` describes.
 
+## Throughput (2026-10-04)
+- Green: both green-flask assemblers are assembler 2 (8 s/flask): ~15/min max. Red: 3 assembler-1 lines, ~18/min max.
+- Steel comes from the player's steelworks (stone furnace at -94,32); don't build our own. I hold 8 steel and 639 belts (the player crafted them).
+- Next: blue science is "down the line" (player). Research order is set in research_keeper.py; nearest crude oil ~(159,319).
+
 ## Background helpers (restart on resume)
 - `client/research_keeper.py` (log `/tmp/research_keeper.log`): queues the next research when idle.
 - Chat voices are factory-themed (the player wants a game, not a coding project): [Maintenance Crew] = watchdog.py, [Lab Director] = research_keeper.py, [Foreman] = a build script starting/finishing (job names in `play.JOBS`), [QA Inspector] = qa_inspector.py (every 20-40 min one picky remark from live data; log `/tmp/qa_inspector.log`), [Production Manager] = production_manager.py (every 10 min: stats + one suggestion; log `/tmp/production_manager.log`).
