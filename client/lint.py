@@ -79,14 +79,70 @@ def _paired(e, occ):
     return False
 
 
+def _fluid_findings(e, t, conn_at, out):
+    """Rule (j): pipe connections must meet a neighbour's facing connection."""
+    conns = e.get("fluid") or []
+    if not conns:
+        return
+
+    def matched(c):
+        return any(o is not e and c2["to"] == c["at"] for o, c2 in conn_at.get(tuple(c["to"]), []))
+
+    hits = [matched(c) for c in conns]
+    if not any(hits):
+        out.append(Finding(t, "fluid-isolated", f"{e['name']} has no connected pipe connection"))
+        return
+    if e["type"] == "offshore-pump" and not all(hits):
+        out.append(Finding(t, "fluid-open", "offshore pump output connects to nothing"))
+    if e["type"] == "boiler":
+        water = [h for c, h in zip(conns, hits) if c.get("fluid") == "water"]
+        steam = [h for c, h in zip(conns, hits) if c.get("fluid") == "steam"]
+        if water and not any(water):
+            out.append(Finding(t, "fluid-open", "boiler has no water input connected"))
+        if steam and not any(steam):
+            out.append(Finding(t, "fluid-open", "boiler steam output connects to nothing"))
+
+
+def _overlaps(rect, e):
+    x, y = e["tile"]
+    return x < rect[2] and x + e["w"] > rect[0] and y < rect[3] and y + e["h"] > rect[1]
+
+
+def _power_sources(ents):
+    """Rule (k): which poles sit on a network that has a generator."""
+    poles = [e for e in ents if e.get("supply")]
+    gens = [e for e in ents if e["type"] == "generator"]
+    src = {id(p) for p in poles if p.get("powered") or any(_overlaps(p["supply"], g) for g in gens)}
+    adj = {id(p): [] for p in poles}
+    for i, a in enumerate(poles):
+        for b in poles[i + 1:]:
+            reach = min(a.get("wire") or 7.5, b.get("wire") or 7.5)
+            dx, dy = a["position"][0] - b["position"][0], a["position"][1] - b["position"][1]
+            if dx * dx + dy * dy <= reach * reach + 1e-9:
+                adj[id(a)].append(id(b))
+                adj[id(b)].append(id(a))
+    live, todo = set(src), list(src)
+    while todo:
+        for n in adj[todo.pop()]:
+            if n not in live:
+                live.add(n)
+                todo.append(n)
+    return poles, live
+
+
 def lint(snap, codes):
     occ = occupancy(snap)
     ents = snap["entities"]
-    poles = [e["supply"] for e in ents if e.get("supply")]
     extracted = set()  # tiles some inserter picks from
     for e in ents:
         if e["type"] == "inserter" and e.get("pickup"):
             extracted.add(tile_of(e["pickup"]))
+
+    conn_at = {}
+    for e in ents:
+        for c in e.get("fluid") or []:
+            conn_at.setdefault(tuple(c["at"]), []).append((e, c))
+    all_poles, live_poles = _power_sources(ents)
 
     out = []
     for e in ents:
@@ -125,8 +181,12 @@ def lint(snap, codes):
         if e["type"] in ("transport-belt",) or (e["type"] == "underground-belt" and e.get("belt_type") == "output"):
             _belt_findings(e, code, occ, out)
 
+        _fluid_findings(e, t, conn_at, out)
+
         if e.get("needs_power"):
-            x, y = t
-            if not any(x < s[2] and x + e["w"] > s[0] and y < s[3] and y + e["h"] > s[1] for s in poles):
+            covering = [p for p in all_poles if _overlaps(p["supply"], e)]
+            if not covering:
                 out.append(Finding(t, "power", f"{e['name']} is outside every pole's supply area"))
+            elif not any(id(p) in live_poles for p in covering):
+                out.append(Finding(t, "no-power-source", f"{e['name']}'s poles never reach a steam engine or powered network"))
     return sorted(set(out))

@@ -81,7 +81,9 @@ def test_unpowered_electric_entity():
 
 def test_powered_by_pole_in_range():
     text = "c.I>c.\n......\np.....\n"
-    assert run(text) == []
+    grid = entity("small-electric-pole", (5, 2), ghost=False)
+    grid["powered"] = True  # the stamp's pole links to an existing live network
+    assert run(text, extra=[grid]) == []
 
 
 def test_pole_out_of_range():

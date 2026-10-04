@@ -30,7 +30,7 @@ CODES = {
     "p": ("small-electric-pole", (1, 1), "none"),
     "B": ("boiler", (3, 2), "belt"),
     "E": ("steam-engine", (3, 5), "belt"),
-    "O": ("offshore-pump", (1, 1), "belt"),
+    "O": ("offshore-pump", (1, 1), "drop"),  # dchar = output side; engine faces the other way
     "x": ("pipe", (1, 1), "none"),
     "L": ("lab", (3, 3), "none"),
 }
