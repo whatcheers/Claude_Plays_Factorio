@@ -11,7 +11,7 @@ import fx  # noqa: E402
 from bridge import Bridge  # noqa: E402
 from play import ChatInterrupt, PlayFail, inv, must, run, withdraw  # noqa: E402
 from scale_run import top_up  # noqa: E402
-from science_run import IRON_CHEST  # noqa: E402
+from science_run import COPPER_CHEST, IRON_CHEST  # noqa: E402
 
 PLAYER_STEELWORKS = (-94, 32)  # the player's steel furnace (2x2, centred on this corner)
 G = (-68, 36)                  # green-flask assembler, top-left tile
@@ -46,6 +46,7 @@ def main():
         for t in todo:
             if inv(b).get("assembling-machine-2", 0) < 1:
                 top_up(b, *IRON_CHEST, "iron-plate", 60)
+                top_up(b, *COPPER_CHEST, "copper-plate", 10)
                 must("craft", "copper-cable", 5)
                 must("craft", "electronic-circuit", 3)
                 must("craft", "iron-gear-wheel", 5)
