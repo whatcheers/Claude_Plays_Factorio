@@ -15,7 +15,7 @@ from science_run import IRON_CHEST  # noqa: E402
 
 PLAYER_STEELWORKS = (-94, 32)  # the player's steel furnace (2x2, centred on this corner)
 G = (-68, 36)                  # green-flask assembler, top-left tile
-TARGETS = [G]
+TARGETS = [G, (-105, 20)]   # green assemblers of blocks 1 and 2
 
 
 def assembler_name(b, x, y):
@@ -57,7 +57,7 @@ def main():
                 must("craft", "assembling-machine-2", 1)
             must("walk", t[0] + 1.5, t[1] + 4.5, "--radius", 2)
             must("upgrade", t[0], t[1], "assembling-machine-2")
-        if run("prove", "green", 1800):
+        if run("prove", "green", 1800) or run("prove", "green2", 1800):
             raise PlayFail("green prove failed after the upgrade")
         must("say", "Green assembler upgraded to an assembler 2: green science is 50% faster.")
         print("UPGRADE PASS")
