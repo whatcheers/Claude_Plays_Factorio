@@ -30,10 +30,13 @@ Automated red science feeding labs, with research running continuously. Phase-2 
 | (player's line) | (46.5,36.5) to (-64.5,22.5) | 18 small poles along y=22.5, then diagonally to the engine | Built by the player, not a tag. Lint follows pole wires past its scan edge to find the engine |
 | `science` | -91,11 .. -69,40 | Red science line 1: inserter out of the iron chest -> belt (x=-91 north, y=26 east) -> gear assembler (-76,22); inserter out of the copper chest -> belt (x=-78 south, y=20 east) -> flask assembler (-72,22) -> lab (`lab` tag). 8 poles off the lab pole | `client/science_run.py`; proven: 4 flasks/min, research rising |
 | `science2` | -76,12 .. -70,21 | Lines 2-3: the gear assembler also drops gears onto the copper belt (north lane); flask assemblers (-76,16), (-72,16) take copper + gears from it, each feeding a lab (-76,12), (-72,12) | `client/scale_run.py`; proven: 6 flasks each/min. The player built the labs |
+| `engine2` | 46,41 .. 49,45 | Second steam engine chained below the first, pole (46,42) | 1.8 MW total. Proven |
+| `elec-iron` | -103,42 .. -74,49 | 4 electric drills (x -85..-74, y 42..44) -> stone furnaces (y 45..46); long-handed inserters fuel them from a coal belt (row 49) fed by an electric drill on coal at (-103,46); inserters put plates on row 48 -> up x=-91 -> inserter into the iron chest from the south | `client/elec_iron_run.py`. Proven 60/60 (the first prove failed only on coal start-up lag) |
+| (player's coal line) | coal field (-106..-99, 31..32) -> belt row 28 -> boiler chest (45,35) | Burner drills on coal, belt to the boiler; the boiler is fed by an electric inserter (46,35) | Built by the player. The boiler no longer needs hand coal |
 | `acA` | 30,10 | Stone furnace left by the acceptance tester | Ignore |
 
 - **Inventory:** all 10 red flasks are in the lab; I hold 39 small poles, 50 coal, 60 iron and 14 copper plates.
-- **Research:** Automation and Logistics are researched. `client/research_keeper.py` runs in the background (log `/tmp/research_keeper.log`) and queues the next red-only tech whenever research is idle. Restart it on resume.
+- **Research:** every useful red-only tech is done (the keeper also wasted some on gun turret/military/stone wall before the combat filter); the rest need green.  Automation and Logistics are researched. `client/research_keeper.py` runs in the background (log `/tmp/research_keeper.log`) and queues the next red-only tech whenever research is idle. Restart it on resume.
 - **Resources:**
   - iron around (-80,40);
   - copper around (-80,0);
@@ -46,7 +49,7 @@ Automated red science feeding labs, with research running continuously. Phase-2 
 1. Task 15 is done (2026-10-04): the lab and the power block both pass `prove`.
 2. Task 16 is done (2026-10-04), and red science is scaled to 3 assemblers + 3 labs (player asked). `prove` OK sets now also accept an inserter waiting for space and an assembler with full output; **record both in SPEC AC-23 (reopen spec) before code review**.
    - Bottlenecks next: iron/copper smelting (2 burner drills each) and boiler coal.
-3. **The boiler needs a steady coal supply.** For now I refill its chest; a coal drill line comes later.
+3. Boiler coal is solved by the player's coal line. Next work is in `docs/PLAN-next.md`: green science, then electric copper.
 4. **Then:** code review (Codex + Sonnet) and acceptance for phase 2, as `crosscheck-build` describes.
 
 ## Gotchas learned the hard way
