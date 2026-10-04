@@ -31,7 +31,7 @@ Automated red science feeding labs, with research running continuously. Phase-2 
 | `acA` | 30,10 | Stone furnace left by the acceptance tester | Ignore |
 
 - **Inventory:** all 10 red flasks are in the lab; I hold 39 small poles, 50 coal, 60 iron and 14 copper plates.
-- **Research:** Automation is running (64% at the last check). Nothing else can run until flasks are automated (task 16).
+- **Research:** Automation is researched (2026-10-04). Nothing else can run until flasks are automated (task 16).
 - **Resources:**
   - iron around (-80,40);
   - copper around (-80,0);
