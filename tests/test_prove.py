@@ -47,3 +47,8 @@ def test_pole_points_spacing_and_corner():
 
 def test_pole_points_single():
     assert pole_points(3, 3, 3, 3) == [(3, 3)]
+
+
+def test_inserter_into_full_boiler_is_ok():
+    _, bad = judge([[ent(1, "inserter", "waiting_for_space_in_destination")]] * 3)
+    assert bad == []

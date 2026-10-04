@@ -44,7 +44,11 @@ def tag_state(b, tag):
     ents = r.get("entities")
     if ents is None:
         return None
-    return "built" if all(not e.get("invalid") and not e["ghost"] for e in ents) else "ghost"
+    if any(e.get("invalid") for e in ents):
+        # a ghost vanished (removed or expired): drop the tag so the caller replans it
+        run("unplan", tag)
+        return None
+    return "built" if all(not e["ghost"] for e in ents) else "ghost"
 
 
 def ensure(b, item, n, recipe_n=None):

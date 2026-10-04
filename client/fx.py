@@ -26,7 +26,7 @@ MACHINE_OK = {
     "furnace": {"working"},
     "assembling-machine": {"working"},
     "mining-drill": {"working", "waiting_for_space_in_destination"},
-    "inserter": {"working", "waiting_for_source_items"},
+    "inserter": {"working", "waiting_for_source_items", "waiting_for_space_in_destination"},  # a full destination is judged on its own
     "boiler": {"working"},
     "generator": {"working"},
     "offshore-pump": {"working"},
@@ -221,10 +221,57 @@ def cmd_unplan(b, a):
     print(f"removed {r['removed']} ghosts of {a.tag}")
 
 
+
+
+def tag_entities(b, tag):
+    """The tag's entities. A ghost someone else built (the player) leaves an invalid
+    reference; resolve it to the built entity of the same name on the planned tile."""
+    ents = b.call("tag", {"tag": tag})["entities"]
+    codes = load_state()["tags"].get(tag, {}).get("codes") or []
+    for i, e in enumerate(ents):
+        if not e.get("invalid") or not 0 < e.get("index", 0) <= len(codes):
+            continue
+        x, y, code, _ = codes[e["index"] - 1]
+        name = CODES[code][0]
+        snap = b.call("scan", {"area": [x, y, x + 1, y + 1]})
+        hit = next((s for s in snap["entities"] if s["name"] == name and not s.get("ghost") and tuple(s["tile"]) == (x, y)), None)
+        if hit:
+            ents[i] = dict(hit, index=e["index"])
+    return ents
+
+
+def lint_scan(b, bbox):
+    """Scan bbox + LINT_PAD, then follow pole wires past the edge (scanning around
+    each outlying pole) so a far-away generator still counts as a power source."""
+    snap = b.call("scan", {"area": padded(bbox, LINT_PAD)})
+    seen = {tuple(e["position"]) for e in snap["entities"]}
+    todo = [e for e in snap["entities"] if e.get("supply") and not e.get("ghost")]
+    done, scans = set(), 0
+    while todo and scans < 300:
+        p = todo.pop()
+        key = tuple(p["position"])
+        if key in done:
+            continue
+        done.add(key)
+        if any(e["type"] == "generator" for e in snap["entities"]):
+            break
+        r = (p.get("wire") or 7.5) + 1
+        x, y = p["position"]
+        extra = b.call("scan", {"area": [math.floor(x - r), math.floor(y - r), math.ceil(x + r), math.ceil(y + r)]})
+        scans += 1
+        for e in extra["entities"]:
+            if e["type"] not in ("electric-pole", "generator") or tuple(e["position"]) in seen:
+                continue
+            seen.add(tuple(e["position"]))
+            snap["entities"].append(e)
+            if e.get("supply") and not e.get("ghost"):
+                todo.append(e)
+    return snap
+
 def cmd_lint(b, a):
     st = load_state()
     t = get_tag(st, a.tag)
-    snap = b.call("scan", {"area": padded(t["bbox"], LINT_PAD)})
+    snap = lint_scan(b, t["bbox"])
     found = lint(snap, codes_of(t))
     for f in found:
         print(f)
@@ -278,12 +325,12 @@ def cmd_build(b, a):
     st = load_state()
     t = get_tag(st, a.tag)
     gate(b, t)
-    fresh = lint(b.call("scan", {"area": padded(t["bbox"], LINT_PAD)}), codes_of(t))
+    fresh = lint(lint_scan(b, t["bbox"]), codes_of(t))
     if fresh:
         for f in fresh:
             print(f)
         raise Fail(f"build refused: fresh lint has {len(fresh)} finding(s)")
-    ents = b.call("tag", {"tag": a.tag})["entities"]
+    ents = tag_entities(b, a.tag)
     ghosts = [e for e in ents if not e.get("invalid") and e["ghost"]]
     inv = b.call("inv")["items"]
     built, missing, unreachable, blocked = [], [], [], []
@@ -427,7 +474,7 @@ def cmd_prove(b, a):
     samples = []
     for _ in range(max(1, a.ticks // SAMPLE_TICKS)):
         b.run_ticks(SAMPLE_TICKS)
-        samples.append(b.call("tag", {"tag": a.tag})["entities"])
+        samples.append(tag_entities(b, a.tag))
     lines, bad = judge(samples)
     print(f"after {a.ticks} ticks ({len(samples)} samples):")
     print("\n".join(lines))
