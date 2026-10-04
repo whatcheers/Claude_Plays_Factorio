@@ -51,8 +51,10 @@ def layout():
     g[(-92, 41)] = "I<"
     g[(-93, 41)] = "b<"
     g[(-94, 41)] = "b^"
-    for y in range(30, 41):
+    for y in range(34, 41):
         g[(-94, y)] = "b^"
+    g[(-94, 33)] = "u^"        # under the player's steelworks furnace (-95..-94, 31..32)
+    g[(-94, 30)] = "U^"
     g[(-94, 29)] = "u^"
     g[(-94, 27)] = "U^"
     for y in range(15, 27):
