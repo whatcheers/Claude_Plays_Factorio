@@ -256,8 +256,22 @@ def tag_entities(b, tag):
             # the player upgraded it in place (wooden -> iron/steel chest, burner -> electric drill)
             hit = next((s for s in here if s["name"] in UPGRADES[name]), None)
         if hit:
-            ents[i] = dict(hit, index=e["index"])
+            ents[i] = dict(hit, index=e["index"], status=status_of(b, hit))
     return ents
+
+
+STATUS_LUA = (
+    "local names = {} for k, v in pairs(defines.entity_status) do names[v] = k end"
+    " local e = game.surfaces[1].find_entities_filtered{name='%s', position={%s, %s}}[1]"
+    " rcon.print(e and e.status and names[e.status] or '')"
+)
+
+
+def status_of(b, e):
+    """`scan` carries no status; read it for an entity resolved by tile
+    (built by the player, or upgraded in place)."""
+    out = b.lua(STATUS_LUA % (e["name"], e["position"][0], e["position"][1])).strip()
+    return out or None
 
 
 def lint_scan(b, bbox):

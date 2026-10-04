@@ -1,4 +1,5 @@
 """Reusable fair-play routines built on fx commands (gather, place a stamp on ore, ferry)."""
+import atexit
 import math
 import os
 import sys
@@ -53,12 +54,27 @@ NARRATE = {
 }
 
 
+_narration = []
+
+
 def narrate(text):
+    """Collect step updates; they go to game chat as one message (the player
+    asked for one message instead of rapid lines) when a result is known."""
     if os.environ.get("FX_NARRATE", "1") == "1":
+        _narration.append(text)
+
+
+def flush_narration():
+    if _narration:
+        msg = "; ".join(_narration)
+        _narration.clear()
         try:
-            fx.main(["say", text])
+            fx.main(["say", msg])
         except Exception:
             pass
+
+
+atexit.register(flush_narration)
 
 
 def run(*args):
@@ -72,6 +88,8 @@ def run(*args):
     sys.stdout.flush()
     if tmpl and args[0] in ("lint", "build", "prove"):
         narrate(tmpl.format(*args, *[""] * 4) + (": OK" if code == 0 else ": FAILED"))
+        if args[0] != "lint":
+            flush_narration()
     return code
 
 
