@@ -13,7 +13,11 @@ from bridge import Bridge  # noqa: E402
 SKIP = ("military", "gun-turret", "stone-wall", "weapon", "physical-projectile", "heavy-armor", "turret")
 # preferred order; anything else red-only follows, cheapest first
 PREFER = ["logistics", "electric-mining-drill", "logistic-science-pack", "steel-processing", "fast-inserter", "radar",
-          "automation-2", "logistics-2", "advanced-material-processing", "engine", "electric-energy-distribution-1",
+          "automation-2", "logistics-2",
+          # the road to blue science
+          "engine", "fluid-handling", "oil-gathering", "plastics", "advanced-circuit", "sulfur-processing",
+          "chemical-science-pack",
+          "advanced-material-processing", "electric-energy-distribution-1",
           "toolbelt", "landfill", "circuit-network", "solar-energy"]
 RED, GREEN = "automation-science-pack", "logistic-science-pack"
 MADE_GREEN = ("local s = game.forces.player.get_item_production_statistics(game.surfaces[1])"
