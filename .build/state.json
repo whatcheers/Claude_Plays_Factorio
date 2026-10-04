@@ -1,0 +1,30 @@
+{
+  "stage": "plan",
+  "base_commit": "172c10e7d5652ba788f3357bfe4821296036a1b8",
+  "history": [
+    {
+      "ts": "2026-10-04T05:12:09",
+      "event": "init",
+      "from": null,
+      "to": "spec",
+      "note": ""
+    },
+    {
+      "ts": "2026-10-04T05:12:56",
+      "event": "advance",
+      "from": "spec",
+      "to": "spec-review",
+      "note": ""
+    },
+    {
+      "ts": "2026-10-04T05:15:43",
+      "event": "advance",
+      "from": "spec-review",
+      "to": "plan",
+      "note": ""
+    }
+  ],
+  "frozen": {
+    "SPEC.md": "ea69b71e2a0419250d9cc32c98f88fff7f1eb40b03612d6d80c86017e67064b7"
+  }
+}
