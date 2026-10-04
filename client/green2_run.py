@@ -57,8 +57,9 @@ def layout():
     g[(-94, 30)] = "U^"
     g[(-94, 29)] = "u^"
     g[(-94, 27)] = "U^"
-    for y in range(15, 27):
+    for y in range(16, 27):
         g[(-94, y)] = "b^"
+    g[(-94, 15)] = "s^"        # iron sideloads the corner from the south (copper comes from the north)
     return g
 
 
