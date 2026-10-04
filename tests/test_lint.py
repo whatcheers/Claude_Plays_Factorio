@@ -158,3 +158,10 @@ def test_lone_electric_drill_is_not_fluid_isolated():
     ents, codes = from_stamp("MvMvMv\nMvMvMv\nMvMvMv\n..c...\n")
     ents[0]["fluid"] = [{"at": [-1, 1], "to": [-2, 1]}, {"at": [3, 1], "to": [4, 1]}]
     assert "fluid-isolated" not in [f.rule for f in lint(snapshot([-4, -4, 10, 10], ents), codes)]
+
+
+def test_underground_output_marked_w_may_sideload():
+    # input at the top, output feeding the side of a west-going belt
+    side = "..uv..\n......\n..Uv..\nb<b<b<\n"
+    assert "sideload" in [f.rule for f in run(side)]
+    assert "sideload" not in [f.rule for f in run(side.replace("Uv", "Wv"))]

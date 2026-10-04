@@ -73,15 +73,15 @@ def layout_green():
     for y in range(21, 27):
         g[(-63, y)] = "bv"
     g[(-63, 27)] = "uv"
-    g[(-63, 29)] = "Uv"        # sideloads into M (-63, 30): north lane
+    g[(-63, 29)] = "Wv"        # sideloads into M (-63, 30): north lane
     # M loop
     g[(-73, 30)] = "bv"
     for y in range(31, 40):
         g[(-73, y)] = "bv"
     g[(-73, 40)] = "b>"
-    for x in range(-72, -58):
+    for x in range(-72, -59):
         g[(x, 40)] = "b>"
-    g[(-58, 40)] = "e>"
+    g[(-59, 40)] = "e>"        # stop short of the M column at x=-57
     # row 1 (rows 32-34) from M via row 31; row 2 (rows 36-38) from row 40 via row 39
     asm(g, -72, 32, "g")       # Gb: gears for the belt assembler
     asm(g, -64, 32, "h")       # Ga: gears for the inserter assembler
@@ -137,7 +137,7 @@ def materials(b, g):
     need = {"electric-mining-drill": count(g, "M"), "stone-furnace": count(g, "F"),
             "long-handed-inserter": count(g, "J"), "inserter": count(g, "I"),
             "assembling-machine-1": count(g, "A"), "transport-belt": count(g, "b") + count(g, "e"),
-            "underground-belt": count(g, "u") + count(g, "U"),
+            "underground-belt": count(g, "u") + count(g, "U") + count(g, "W"),
             "small-electric-pole": count(g, "p")}
     short = {k: max(0, n - inv(b).get(k, 0)) for k, n in need.items()}
     ins_crafts = short["inserter"] + short["long-handed-inserter"]

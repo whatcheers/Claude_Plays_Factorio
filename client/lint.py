@@ -61,7 +61,7 @@ def _belt_findings(e, code, occ, out):
     other_side = occ.get(_add(tt, STEP[d]))
     both_sides = is_belt(other_side) and dchar(other_side) == OPPOSITE[d]
     sideload = straight_fed or both_sides or target["type"] == "underground-belt"
-    if sideload and code != "s":
+    if sideload and code not in ("s", "W"):
         out.append(Finding(t, "sideload", f"sideloads the belt at {tt[0]},{tt[1]} (mark it 's' if intended)"))
 
 

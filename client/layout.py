@@ -21,6 +21,7 @@ CODES = {
     "e": ("transport-belt", (1, 1), "belt"),
     "u": ("underground-belt", (1, 1), "belt"),
     "U": ("underground-belt", (1, 1), "belt"),
+    "W": ("underground-belt", (1, 1), "belt"),  # output half that may sideload the belt it feeds
     "i": ("burner-inserter", (1, 1), "drop"),
     "I": ("inserter", (1, 1), "drop"),
     "F": ("stone-furnace", (2, 2), "none"),
@@ -212,6 +213,6 @@ def place(stamp, X, Y, rot):
             direction = DIR["north"]
             if rule == "recipe" and e.dchar != ".":
                 recipe = recipes[e.dchar]
-        belt_type = {"u": "input", "U": "output"}.get(e.code)
+        belt_type = {"u": "input", "U": "output", "W": "output"}.get(e.code)
         out.append(Placed(e.code, name, e.w, e.h, (tx, ty), (tx + e.w / 2, ty + e.h / 2), direction, e.dchar, belt_type, recipe))
     return out
