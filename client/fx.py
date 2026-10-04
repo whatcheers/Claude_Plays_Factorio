@@ -76,6 +76,10 @@ def _in(area, x, y):
     return area[0] <= x <= area[2] and area[1] <= y <= area[3]
 
 
+# not part of a layout: characters walk around, `say` spawns a speech bubble over Claude
+TRANSIENT_TYPES = {"character", "speech-bubble", "flying-text", "highlight-box", "smoke-with-trigger"}
+
+
 def fingerprint(snap, area):
     """What a check saw inside `area`: every non-character entity (ghost or
     built is the same layout), water, and which tiles hold which resource.
@@ -87,7 +91,7 @@ def fingerprint(snap, area):
     ents = sorted(
         (e["name"], tuple(e["tile"]), e["w"], e["h"], e["direction"], e.get("belt_type") or "")
         for e in snap["entities"]
-        if e["type"] != "character" and touches(e)
+        if e["type"] not in TRANSIENT_TYPES and touches(e)
     )
     water = sorted(tuple(w) for w in snap.get("water", []) if _in(area, *w))
     res = sorted((r["name"], tuple(r["tile"])) for r in snap.get("resources", []) if _in(area, *r["tile"]))
