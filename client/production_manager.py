@@ -79,7 +79,12 @@ def advise(made, labs, starved, extra):
     head = f"last 10 min: {red:.0f} red and {green:.0f} green flasks/min, {iron:.0f} iron and {copper:.0f} copper plates/min"
     missing = labs.get("missing_science_packs", 0)
     working = labs.get("working", 0)
-    if cap and used > 0.85 * cap:
+    stopped = [n for n in ("iron-plate", "copper-plate") if made.get(n, (0, 0))[0] < 1 and made.get(n, (0, 0))[1] > 5]
+    if stopped:
+        n = stopped[0].replace("-plate", "")
+        tip = (f"{n} smelting has STOPPED: we used {made[stopped[0]][1]:.0f} {n} plates/min and made none. "
+               "Living off the chest; find out why now")
+    elif cap and used > 0.85 * cap:
         tip = f"the power plant is at {used:.1f} of {cap:.1f} MW; build more boilers and steam engines before anything else"
     elif "logistic-science-pack" in starved or any(r in starved for r in ("inserter", "transport-belt", "electronic-circuit")):
         parts = ", ".join(r.replace("-", " ") for r in starved)

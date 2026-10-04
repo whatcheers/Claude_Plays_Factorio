@@ -39,6 +39,7 @@ Automated red science feeding labs, with research running continuously. Phase-2 
 | `green-cu` | -63,20 .. -57,29 | Copper from the filtered inserter east on row 20, down x=-57, underground past the coal belt, into M's corner (-57,30) from the north (copper on M's north lane, upstream of every consumer) | Proven via `prove green` |
 | `power2` | 35,34 .. 46,50 | Boiler 2 (36,39) + 2 steam engines (36,41),(36,46). Water from boiler 1's west port (46,34) along row 34, down x=39, under the coal belt by pipe-to-ground (39,36)/(39,38). Coal: inserter (37,38) straight off the player's coal belt | `client/power2_run.py`. Proven. 3.6 MW total |
 | `brick-sink` | -59,41 .. -59,42 | Inserter filtered to stone-brick at the end of the green row-40 belt, into a chest | Stopgap. The cause (elec-iron2's west unit reaching stone) is retired |
+| `labs67` | -69,11 .. -62,14 | Labs 6 (-68,12) and 7 (-64,12) chained east off lab B by (-69,13) and (-65,13) | `client/labs67_run.py`. Proven |
 | `labs45` | -65,22 .. -58,26 | Lab 4 (-64,22) fed from lab 1 by (-65,23); lab 5 (-60,24) fed from lab 4 by (-61,24). Lab-to-lab inserters pass red + green | `client/labs_run.py`. Proven 30/30 |
 | `green2` | -110,4 .. -71,41 | Green Block 2: Green Block 1 mirrored by (-37,-16). Iron from the iron chest's west side (-92,41) up x=-94 (underground under the player's steelworks furnace and coal belt); copper from the copper chest's north side (-78,9) west on row 5, down x=-94. Flasks north, east on row 4, down x=-71 into lab B; (-73,12) passes them lab B -> lab A | `client/green2_run.py`. Proven (first prove failed on copper start-up lag) |
 | `acA` | 30,10 | Stone furnace left by the acceptance tester | Ignore |
@@ -75,6 +76,7 @@ Automated red science feeding labs, with research running continuously. Phase-2 
 - All 5 labs get green (labs A/B from Green Block 2, labs 1/4/5 from Green Block 1).
 
 ## Gotchas learned the hard way
+- **An upgraded inserter can come back reversed.** The copper smelter's furnace->chest inserters were replaced facing the wrong way: they pulled plates out of the chest and tried to put them into the furnaces, so copper production was 0 while the chest drained (found and fixed 2026-10-04 by rotating both). A reversed inserter looks like a healthy 'waiting' one; the Maintenance Crew now compares every inserter's drop side with its stamp.
 - **Drills mine everything under their 5x5 area.** Stone or coal at the edge of an ore patch ends up in the furnace (bricks on the iron belt, coal jamming the fuel slot). Check the drill's whole mining area, not just its 3x3 footprint.
 - **Trigger techs** (craft-item, build-entity, mine-entity) only count real players. The mod now credits Claude's own crafts, builds and mines (`credit()` in `control.lua`). `automation-science-pack` was flipped by script after Claude's lab craft.
 - **`can_place_entity`** without `build_check_type = manual` says yes to an offshore pump on dry land.

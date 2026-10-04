@@ -9,6 +9,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import fx  # noqa: E402
+from world import side_of  # noqa: E402
 from bridge import Bridge  # noqa: E402
 
 STREAK = 5
@@ -54,16 +55,35 @@ def has_output(b, e):
         return False
 
 
+def reversed_inserter(e, codes):
+    """An inserter whose engine drop side disagrees with the stamp (e.g. replaced
+    facing the wrong way): it starves what it should feed and looks 'waiting'."""
+    if e.get("type") != "inserter" or not e.get("drop"):
+        return False
+    want = codes.get(tuple(e["tile"]))
+    if not want or want[0] not in ("i", "I", "J"):
+        return False
+    return side_of(tuple(e["tile"]), e["drop"]) not in (want[1], None)
+
+
 def check(b, streaks, alerted):
-    for tag in fx.load_state()["tags"]:
+    for tag, t in fx.load_state()["tags"].items():
         if tag in SKIP_TAGS:
             continue
         try:
             ents = fx.tag_entities(b, tag)
         except Exception:
             continue
+        codes = {(c[0], c[1]): (c[2], c[3]) for c in t.get("codes") or []}
         for e in ents:
             if e.get("invalid") or e.get("ghost"):
+                continue
+            if reversed_inserter(e, codes):
+                key = (tag, tuple(e["tile"]), "reversed")
+                if key not in alerted:
+                    alerted.add(key)
+                    say(b, f"{plain(e)} is facing the wrong way (it drops {side_of(tuple(e['tile']), e['drop'])}, "
+                           f"the plan says {codes[tuple(e['tile'])][1]}). Claude, please turn it around.")
                 continue
             ok = fx.MACHINE_OK.get(e.get("type"))
             if ok is None:
