@@ -2,6 +2,12 @@
 
 Last updated 2026-10-04. **Update this file whenever something is built or the plan changes.** It is the only record of the game state outside the game itself.
 
+## Wrap-up notes (2026-10-04, session ended on usage)
+- Red line upgrade (`client/red_upgrade_run.py`) was running at wrap-up: 3 red assemblers -> assembler 2, fast inserters at (-91,40) and (-92,41). It is resumable: rerun it and check `/tmp/red_upgrade.log`.
+- Process Engineer (blue science design) was stopped mid-job. Its work is in the worktree `../factory-pe` (branch `process-engineer`); check what it committed before reusing it.
+- Still queued: steel furnaces on the last 4 iron columns (need 24 steel + 40 bricks; rerun `client/iron_steel_run.py`).
+- Background helpers left running in game (plain Python, no Claude usage): research_keeper.py, watchdog.py, production_manager.py, qa_inspector.py. Restart them on resume if the machine rebooted.
+
 ## How to resume
 1. Read `CLAUDE.md` (commands, architecture) and `docs/conventions.md` (measured engine facts).
 2. Re-arm the chat watcher with the Monitor tool: `cd ~/playground/factory && python -u client/chatwatch.py`, timeout 30 min, re-armed on every expiry. Answer the player in game with `python client/fx.py say ...`.
