@@ -125,3 +125,30 @@ def test_lonely_underground_input():
 
 def test_underground_wrong_direction_is_not_a_pair():
     assert ((1, 0), "underground") in rules(run("b>u>....U<\n"))
+
+
+# Electric drill -> stone furnace; a long-handed inserter fuels the furnace from
+# the coal belt (row 7) over the plate belt (row 6); an inserter moves plates out.
+SMELT_COLUMN = (
+    "MvMvMvMvMvMv\n"
+    "MvMvMvMvMvMv\n"
+    "MvMvMvMvMvMv\n"
+    "..F.F...F.F.\n"
+    "p.F.F.p.F.F.\n"
+    "..J^Iv..J^Iv\n"
+    "e<b<b<b<b<b<\n"
+    "b>b>b>b>b>e>\n"
+)
+
+
+def test_electric_smelt_column_clean():
+    pole_power = entity("steam-engine", (-3, -3), typ="generator", ghost=False, w=1, h=1)
+    pole = entity("small-electric-pole", (-2, -2), ghost=False)
+    found = [f for f in run(SMELT_COLUMN, extra=[pole_power, pole]) if f.rule not in ("power",)]
+    assert found == [], found
+
+
+def test_long_inserter_renders_drop_side():
+    from render import glyph
+    ents, _ = from_stamp("J^\n")
+    assert glyph(ents[0]) == "J^"

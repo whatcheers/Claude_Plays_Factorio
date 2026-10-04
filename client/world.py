@@ -34,6 +34,8 @@ def side_of(src_tile, pos):
     """dchar for the unit step from src_tile toward pos, or None."""
     tx, ty = tile_of(pos)
     d = (tx - src_tile[0], ty - src_tile[1])
+    if 0 in d:  # straight line of any length (a long-handed inserter reaches 2 tiles)
+        d = tuple((v > 0) - (v < 0) for v in d)
     for c, s in STEP.items():
         if s == d:
             return c

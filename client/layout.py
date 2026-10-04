@@ -25,6 +25,8 @@ CODES = {
     "I": ("inserter", (1, 1), "drop"),
     "F": ("stone-furnace", (2, 2), "none"),
     "D": ("burner-mining-drill", (2, 2), "belt"),
+    "M": ("electric-mining-drill", (3, 3), "belt"),
+    "J": ("long-handed-inserter", (1, 1), "drop"),
     "A": ("assembling-machine-1", (3, 3), "recipe"),
     "c": ("wooden-chest", (1, 1), "none"),
     "p": ("small-electric-pole", (1, 1), "none"),

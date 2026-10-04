@@ -3,6 +3,7 @@ from world import dchar, footprint, side_of
 
 RESOURCE_GLYPH = {"iron-ore": "'i", "copper-ore": "'c", "coal": "'k", "stone": "'s", "uranium-ore": "'u", "crude-oil": "'o"}
 SIMPLE = {"stone-furnace": "F.", "assembling-machine-1": "A.", "wooden-chest": "c.", "small-electric-pole": "p.", "pipe": "x.", "lab": "L."}
+INSERTER_CODE = {"burner-inserter": "i", "inserter": "I", "long-handed-inserter": "J"}
 TYPE_GLYPH = {"tree": "T.", "simple-entity": "R.", "character": "@@"}
 
 
@@ -16,6 +17,8 @@ def glyph(e):
         return ("u" if e.get("belt_type") == "input" else "U") + dchar(e)
     if name == "burner-mining-drill":
         return "D" + dchar(e)
+    if name == "electric-mining-drill":
+        return "M" + dchar(e)
     if name == "boiler":
         return "B" + dchar(e)
     if name == "steam-engine":
@@ -27,10 +30,10 @@ def glyph(e):
             if side:
                 return "O" + side
         return "O?"
-    if name in ("burner-inserter", "inserter"):
+    if name in INSERTER_CODE:
         # drawn from where the engine says it drops, never from its direction
         side = side_of(tuple(e["tile"]), e["drop"]) if e.get("drop") else None
-        return ("i" if name == "burner-inserter" else "I") + (side or "?")
+        return INSERTER_CODE[name] + (side or "?")
     return TYPE_GLYPH.get(typ, "##")
 
 

@@ -15,6 +15,8 @@ TYPES = {
     "inserter": "inserter",
     "stone-furnace": "furnace",
     "burner-mining-drill": "mining-drill",
+    "electric-mining-drill": "mining-drill",
+    "long-handed-inserter": "inserter",
     "assembling-machine-1": "assembling-machine",
     "wooden-chest": "container",
     "small-electric-pole": "electric-pole",
@@ -43,17 +45,18 @@ def entity(name, tile, size=1, direction=0, ghost=True, belt_type=None, can_plac
         "drop": None,
         "belt_type": belt_type,
         "has_inventory": typ in INVENTORY_TYPES,
-        "needs_power": typ in {"inserter", "assembling-machine", "lab"} and name != "burner-inserter",
+        "needs_power": (typ in {"inserter", "assembling-machine", "lab"} and name != "burner-inserter") or name == "electric-mining-drill",
         "supply": None,
         "can_place": can_place if ghost else None,
         "max_distance": 5 if name == "underground-belt" else None,
     }
     if typ == "inserter":
         pdx, pdy = STEP[DIR_DCHAR[direction]]
-        e["pickup"] = [cx + pdx, cy + pdy]
-        e["drop"] = [cx - 1.2 * pdx, cy - 1.2 * pdy]
+        reach = 2 if name == "long-handed-inserter" else 1
+        e["pickup"] = [cx + reach * pdx, cy + reach * pdy]
+        e["drop"] = [cx - (reach + 0.2) * pdx, cy - (reach + 0.2) * pdy]
     if typ == "mining-drill":
-        vx, vy = -0.3, -1.3  # north-facing drop vector; rotate clockwise
+        vx, vy = (0, -2.0) if name == "electric-mining-drill" else (-0.3, -1.3)  # north-facing drop vector; rotate clockwise
         for _ in range(direction // 4):
             vx, vy = -vy, vx
         e["drop"] = [cx + vx, cy + vy]
