@@ -82,8 +82,8 @@ def _paired(e, occ):
 def _fluid_findings(e, t, conn_at, out):
     """Rule (j): pipe connections must meet a neighbour's facing connection."""
     conns = e.get("fluid") or []
-    if not conns:
-        return
+    if not conns or e["type"] == "mining-drill":
+        return  # a drill's fluid input is optional (only uranium needs it)
 
     def matched(c):
         return any(o is not e and c2["to"] == c["at"] for o, c2 in conn_at.get(tuple(c["to"]), []))

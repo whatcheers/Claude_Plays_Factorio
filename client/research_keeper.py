@@ -8,12 +8,15 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from bridge import Bridge  # noqa: E402
 
+# peaceful map: never spend flasks on combat techs
+SKIP = ("military", "gun-turret", "stone-wall", "weapon", "physical-projectile", "heavy-armor", "turret")
 # preferred order; anything else red-only follows, cheapest first
 PREFER = ["logistics", "electric-mining-drill", "logistic-science-pack", "steel-processing", "fast-inserter", "radar"]
 
 
 def pick(avail):
-    red = [t for t in avail if not t.get("trigger") and (t.get("ingredients") or []) == ["automation-science-pack"]]
+    red = [t for t in avail if not t.get("trigger") and (t.get("ingredients") or []) == ["automation-science-pack"]
+           and not any(k in t["name"] for k in SKIP)]
     names = {t["name"]: t for t in red}
     for n in PREFER:
         if n in names:

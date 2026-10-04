@@ -152,3 +152,9 @@ def test_long_inserter_renders_drop_side():
     from render import glyph
     ents, _ = from_stamp("J^\n")
     assert glyph(ents[0]) == "J^"
+
+
+def test_lone_electric_drill_is_not_fluid_isolated():
+    ents, codes = from_stamp("MvMvMv\nMvMvMv\nMvMvMv\n..c...\n")
+    ents[0]["fluid"] = [{"at": [-1, 1], "to": [-2, 1]}, {"at": [3, 1], "to": [4, 1]}]
+    assert "fluid-isolated" not in [f.rule for f in lint(snapshot([-4, -4, 10, 10], ents), codes)]
