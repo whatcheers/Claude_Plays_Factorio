@@ -20,7 +20,7 @@ Last updated 2026-10-04. **Update this file whenever something is built or the p
 - **Chat is how they direct me.** Answer within seconds, which means:
   - long scripts run with `run_in_background`;
   - the player wants Claude's own short findings + next-step lines in game chat (post them with `fx.py say` as you work), not mechanical step logs. Script narration is off by default (`FX_NARRATE=1` turns it on).
-  - background scripts no longer stop on chat (2026-10-04, the player asked). The chatwatch monitor reports chat; answer with `fx.py say` while the script runs. Don't issue walk/build/craft commands while a script is driving the character. `FX_CHAT_INTERRUPT=1` restores the old stop-on-chat.
+  - background scripts no longer stop on chat (2026-10-04, the player asked). The chatwatch monitor reports chat; answer with `fx.py say` while the script runs. The player prefers quick fixes right away even while a background script is driving the character (2026-10-04). The mod has one job slot, so the script's current step may fail; scripts are resumable, so just rerun it afterwards. `FX_CHAT_INTERRUPT=1` restores the old stop-on-chat.
 - **Mod changes need a reload:** after editing `bridge/control.lua`, ask them in chat for Esc → Save, quit to menu, Multiplayer → Host saved game.
 
 ## Goal
