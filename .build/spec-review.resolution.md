@@ -1,9 +1,8 @@
-- codex/S1: fixed — added "Stamp format" section: 2-char tiles, code table with sizes and direction meaning, footprint rules, anchor = top-left tile, rotation re-anchors top-left
-- codex/S2: fixed — AC-10 adds `put`/`take` within reach; AC-11 says fuel goes in with `put`
-- codex/S3: fixed — new AC-8: `build` refuses unless lint passed and a `look` and a `shot` covered the tag since its last `plan`
-- codex/S4: fixed — AC-10 now requires reach checks for mine/put/take, real mining/crafting time, and refusal on missing ingredients
-- codex/S5: fixed — AC-6 defines source/sink (an entity with an inventory, or a belt), `e` code for open outputs, `s` for intended sideloads, and ghosts count as present
-- codex/S6: fixed — AC-5: `plan ... [--tag T]` prints `tag: <T>`
-- codex/S7: fixed — AC-9 lists `unreachable`/`missing` and exits nonzero; AC-10 walk prints `unreachable` and exits nonzero after 60 s of game time
-- codex/S8: fixed — Stamp format section: tick-dependent commands unpause for their duration and restore the prior paused state
-- codex/S9: fixed — AC-11 defines the burner-iron stamp contents, starting supplies (vanilla freeplay inventory plus gathered/crafted), output location (the wooden chest), and the pass condition
+- codex/S1: fixed — new AC-12: `prove <T> N` is generic, with a per-type accepted-status set and a nonzero exit naming the failures; AC-11 remains the end-to-end demo
+- codex/S2: fixed — AC-10: `put` uses the engine's insert routing (fuel/source); `take` takes from the output inventory first
+- codex/S3: fixed — AC-10: put/take move what fits and print the count; mine stops with `inventory full`; craft refuses if the result won't fit; nothing is dropped
+- codex/S4: fixed — AC-6 rule (i): underground pairing within the prototype max distance; a paired input continues the belt, and the output is checked under (b)/(c)
+- codex/S5: fixed — AC-8: lint/look/shot record a fingerprint of bbox+4; build rescans and refuses with `area changed since checks` on mismatch
+- codex/S6: fixed — AC-5: plan refuses on an existing tag or footprint tiles holding a ghost or built non-tree/rock entity; the mod records tag ownership
+- codex/S7: fixed — AC-4: full notation for resources/water/tree/rock/character/unknown, plus layer precedence
+- codex/S8: fixed — AC-3: spawn gives exactly the freeplay `get_created_items` kit, once at creation; that is the sole exemption

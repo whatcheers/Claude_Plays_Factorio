@@ -1,0 +1,76 @@
+{
+  "findings": [
+    {
+      "id": "S1",
+      "severity": "blocker",
+      "file": "SPEC.md",
+      "line": 10,
+      "claim": "The stamp format is undefined, including glyph mappings, drop and sideload markers, multi-tile footprints, placement anchor, and rotation pivot.",
+      "failure_scenario": "Two implementations accept different stamp files and place the same furnace at different coordinates after rotation, while both pass their own parser and rotation tests; docs/conventions.md defines engine coordinates but does not resolve these choices."
+    },
+    {
+      "id": "S2",
+      "severity": "major",
+      "file": "SPEC.md",
+      "line": 18,
+      "claim": "The required burner-smelting demonstration has no specified mechanism for transferring gathered fuel and materials into machines.",
+      "failure_scenario": "Claude gathers and crafts the required items and builds every ghost, but the burner machines remain unfueled because walk, mine, craft, inv, and build provide no inventory-transfer operation; completing the demonstration requires manual intervention or additional behavior."
+    },
+    {
+      "id": "S3",
+      "severity": "major",
+      "file": "SPEC.md",
+      "line": 5,
+      "claim": "No acceptance criterion requires every layout to receive all three checks before construction.",
+      "failure_scenario": "An implementation exposes look, shot, lint, and build as unrelated commands and immediately builds an unchecked plan, satisfying the command criteria while violating the mandatory draft-check-build sequence."
+    },
+    {
+      "id": "S4",
+      "severity": "major",
+      "file": "SPEC.md",
+      "line": 17,
+      "claim": "The supporting mine and craft commands have no acceptance requirements enforcing the Goal's reach, inventory, and fair-play constraints.",
+      "failure_scenario": "mine extracts resources from arbitrary distant coordinates or craft queues recipes without consuming ingredients, yet the stated supporting-command observations pass because explicit reach and item-consumption checks cover only build."
+    },
+    {
+      "id": "S5",
+      "severity": "major",
+      "file": "SPEC.md",
+      "line": 15,
+      "claim": "Lint does not define valid sources and sinks, intentional terminal outputs, or whether planned ghosts count as connected equipment.",
+      "failure_scenario": "One implementation accepts an inserter dropping onto a planned belt while another flags it because no real belt exists; an intentional output belt may also be indistinguishable from an accidentally disconnected belt."
+    },
+    {
+      "id": "S6",
+      "severity": "major",
+      "file": "SPEC.md",
+      "line": 14,
+      "claim": "Plan-dependent commands require a tag, but plan has neither a tag input nor a requirement to return its assigned tag.",
+      "failure_scenario": "plan prints only the required entity positions and succeeds, leaving the caller without the identifier needed to lint, build, prove, or remove that plan."
+    },
+    {
+      "id": "S7",
+      "severity": "major",
+      "file": "SPEC.md",
+      "line": 17,
+      "claim": "Walk and build have no defined failure or completion behavior when pathfinding cannot reach a destination or build position.",
+      "failure_scenario": "A ghost across water or behind enclosed machinery passes placement checks, but build waits indefinitely for Claude to reach it or terminates after partial construction without identifying what remains unbuilt."
+    },
+    {
+      "id": "S8",
+      "severity": "major",
+      "file": "SPEC.md",
+      "line": 17,
+      "claim": "Tick-dependent actions have no specified behavior when invoked while the hosted game is paused.",
+      "failure_scenario": "After inspecting ghosts while paused, build starts walking but never progresses, or automatically unpauses the entire hosted game and leaves it running; the spec supplies no acceptance condition deciding either behavior."
+    },
+    {
+      "id": "S9",
+      "severity": "major",
+      "file": "SPEC.md",
+      "line": 18,
+      "claim": "The end-to-end criterion references an undefined burner-smelting stamp and unspecified starting supplies, output location, and operating conditions.",
+      "failure_scenario": "Engineers choose different layouts and fuel quantities, so one furnace is working at tick 600 while another valid layout has exhausted fuel or filled its output; there is no common fixture that determines whether the implementation passes."
+    }
+  ]
+}

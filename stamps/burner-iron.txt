@@ -1,0 +1,7 @@
+# Two burner drills on iron ore, each outputting south into a stone furnace.
+# A burner inserter on each side moves plates from its furnace into the
+# shared wooden chest in the middle (furnace -> inserter -> chest in a line).
+DvDv......DvDv
+DvDv......DvDv
+F.F.......F.F.
+F.F.i>c.i<F.F.

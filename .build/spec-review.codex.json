@@ -2,75 +2,67 @@
   "findings": [
     {
       "id": "S1",
-      "severity": "blocker",
+      "severity": "major",
       "file": "SPEC.md",
-      "line": 10,
-      "claim": "The stamp format is undefined, including glyph mappings, drop and sideload markers, multi-tile footprints, placement anchor, and rotation pivot.",
-      "failure_scenario": "Two implementations accept different stamp files and place the same furnace at different coordinates after rotation, while both pass their own parser and rotation tests; docs/conventions.md defines engine coordinates but does not resolve these choices."
+      "line": 66,
+      "claim": "The requirement to prove every layout working is covered only by a proof criterion specific to the burner-iron demonstration.",
+      "failure_scenario": "An implementation can pass every acceptance criterion while prove rejects a valid belt-only layout because it has no chest containing iron plates, or accepts a layout with stalled assemblers because only furnaces and drills are checked."
     },
     {
       "id": "S2",
       "severity": "major",
       "file": "SPEC.md",
-      "line": 18,
-      "claim": "The required burner-smelting demonstration has no specified mechanism for transferring gathered fuel and materials into machines.",
-      "failure_scenario": "Claude gathers and crafts the required items and builds every ghost, but the burner machines remain unfueled because walk, mine, craft, inv, and build provide no inventory-transfer operation; completing the demonstration requires manual intervention or additional behavior."
+      "line": 65,
+      "claim": "The put and take commands do not specify which inventory to use when an entity has separate fuel, ingredient, and output inventories.",
+      "failure_scenario": "During AC-11, put must fuel furnaces and burner inserters, but an implementation that selects an entity's primary inventory can reject the fuel or put it in the wrong compartment, preventing the required demonstration from running."
     },
     {
       "id": "S3",
       "severity": "major",
       "file": "SPEC.md",
-      "line": 5,
-      "claim": "No acceptance criterion requires every layout to receive all three checks before construction.",
-      "failure_scenario": "An implementation exposes look, shot, lint, and build as unrelated commands and immediately builds an unchecked plan, satisfying the command criteria while violating the mandatory draft-check-build sequence."
+      "line": 65,
+      "claim": "Item-producing and transfer actions have no defined behavior when the destination inventory cannot accept all resulting items.",
+      "failure_scenario": "Putting 100 items into a nearly full chest can remove 100 from Claude while inserting only a few, or duplicate items if the implementation inserts before discovering it cannot complete the corresponding removal; neither atomic failure nor partial-transfer accounting is specified."
     },
     {
       "id": "S4",
       "severity": "major",
       "file": "SPEC.md",
-      "line": 17,
-      "claim": "The supporting mine and craft commands have no acceptance requirements enforcing the Goal's reach, inventory, and fair-play constraints.",
-      "failure_scenario": "mine extracts resources from arbitrary distant coordinates or craft queues recipes without consuming ingredients, yet the stated supporting-command observations pass because explicit reach and item-consumption checks cover only build."
+      "line": 61,
+      "claim": "Underground belts are supported by the stamp format, but lint has no requirement to verify a connected input/output pair or define how underground segments participate in belt-continuity checks.",
+      "failure_scenario": "An input without an output, or a pair too far apart to connect, can pass lint and be built as a broken transport route; another implementation can reject a valid tunnel by requiring its input to feed an adjacent surface belt."
     },
     {
       "id": "S5",
       "severity": "major",
       "file": "SPEC.md",
-      "line": 15,
-      "claim": "Lint does not define valid sources and sinks, intentional terminal outputs, or whether planned ghosts count as connected equipment.",
-      "failure_scenario": "One implementation accepts an inserter dropping onto a planned belt while another flags it because no real belt exists; an intentional output belt may also be indistinguishable from an accidentally disconnected belt."
+      "line": 63,
+      "claim": "Build authorization remains valid after changes to the inspected layout or its surroundings because only a new plan invalidates the checks.",
+      "failure_scenario": "After look, shot, and lint pass, the user rotates an inserter ghost or removes a supporting belt; build can still pass the specified gate and construct a layout whose current state has never passed inspection or lint."
     },
     {
       "id": "S6",
       "severity": "major",
       "file": "SPEC.md",
-      "line": 14,
-      "claim": "Plan-dependent commands require a tag, but plan has neither a tag input nor a requirement to return its assigned tag.",
-      "failure_scenario": "plan prints only the required entity positions and succeeds, leaving the caller without the identifier needed to lint, build, prove, or remove that plan."
+      "line": 60,
+      "claim": "Tag reuse and planning over existing ghosts have no defined ownership or replacement semantics.",
+      "failure_scenario": "Running plan with the same tag at a second location can merge with or replace the first plan depending on the implementation, causing unplan to remove unexpected ghosts or leave the original ghosts behind; overlapping plans also lack a rule determining which tag owns shared ghosts."
     },
     {
       "id": "S7",
       "severity": "major",
       "file": "SPEC.md",
-      "line": 17,
-      "claim": "Walk and build have no defined failure or completion behavior when pathfinding cannot reach a destination or build position.",
-      "failure_scenario": "A ghost across water or behind enclosed machinery passes placement checks, but build waits indefinitely for Claude to reach it or terminates after partial construction without identifying what remains unbuilt."
+      "line": 59,
+      "claim": "The required ASCII view has neither notation for resources and obstacles nor a rule for displaying multiple layers occupying the same tile.",
+      "failure_scenario": "On the required iron-ore patch, a drill ghost and ore occupy the same tiles; one implementation displays only ore and hides the planned drill, while another displays only the drill and hides resource coverage, undermining the engine-based layout check."
     },
     {
       "id": "S8",
       "severity": "major",
       "file": "SPEC.md",
-      "line": 17,
-      "claim": "Tick-dependent actions have no specified behavior when invoked while the hosted game is paused.",
-      "failure_scenario": "After inspecting ghosts while paused, build starts walking but never progresses, or automatically unpauses the entire hosted game and leaves it running; the spec supplies no acceptance condition deciding either behavior."
-    },
-    {
-      "id": "S9",
-      "severity": "major",
-      "file": "SPEC.md",
-      "line": 18,
-      "claim": "The end-to-end criterion references an undefined burner-smelting stamp and unspecified starting supplies, output location, and operating conditions.",
-      "failure_scenario": "Engineers choose different layouts and fuel quantities, so one furnace is working at tick 600 while another valid layout has exhausted fuel or filled its output; there is no common fixture that determines whether the implementation passes."
+      "line": 66,
+      "claim": "The starting-inventory exemption in AC-11 has no defined source consistent with the prohibition on creating items and modifying the user's inventory.",
+      "failure_scenario": "One implementation grants Claude a freeplay starter kit during spawn, creating items from nothing, while another creates an empty character and expects a starter kit the supporting workflow never supplies; the spec does not establish the initial inventory against which fair play is checked."
     }
   ]
 }

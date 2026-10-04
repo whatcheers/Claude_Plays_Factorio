@@ -1,5 +1,5 @@
 {
-  "stage": "plan",
+  "stage": "build",
   "base_commit": "172c10e7d5652ba788f3357bfe4821296036a1b8",
   "history": [
     {
@@ -22,9 +22,45 @@
       "from": "spec-review",
       "to": "plan",
       "note": ""
+    },
+    {
+      "ts": "2026-10-04T05:16:24",
+      "event": "advance",
+      "from": "plan",
+      "to": "build",
+      "note": ""
+    },
+    {
+      "ts": "2026-10-04T05:21:05",
+      "event": "reopen",
+      "from": "build",
+      "to": "spec",
+      "note": "manual reopen (archived to 01-reopen-spec)"
+    },
+    {
+      "ts": "2026-10-04T05:21:05",
+      "event": "advance",
+      "from": "spec",
+      "to": "spec-review",
+      "note": ""
+    },
+    {
+      "ts": "2026-10-04T05:23:09",
+      "event": "advance",
+      "from": "spec-review",
+      "to": "plan",
+      "note": ""
+    },
+    {
+      "ts": "2026-10-04T05:23:14",
+      "event": "advance",
+      "from": "plan",
+      "to": "build",
+      "note": ""
     }
   ],
   "frozen": {
-    "SPEC.md": "ea69b71e2a0419250d9cc32c98f88fff7f1eb40b03612d6d80c86017e67064b7"
+    "SPEC.md": "9468470c1795086d3ff24aae363a410fa85aba692db6c595c179001a3dd30859",
+    "PLAN.md": "9cff9efd854729650341c721d8c3308a390554112585482d5e77ca9063c3151c"
   }
 }

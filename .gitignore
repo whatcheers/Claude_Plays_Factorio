@@ -1,0 +1,4 @@
+.fx_state.json
+.rcon_password
+__pycache__/
+.pytest_cache/
