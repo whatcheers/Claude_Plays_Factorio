@@ -60,7 +60,7 @@ Automated red science feeding labs, with research running continuously. Phase-2 
 
 ## Background helpers (restart on resume)
 - `client/research_keeper.py` (log `/tmp/research_keeper.log`): queues the next research when idle.
-- `client/watchdog.py` (log `/tmp/watchdog.log`): once a minute, reports any tag machine stuck 5 checks running, and power above 90%. Watch it with a Monitor on `tail -F /tmp/watchdog.log | grep --line-buffered maintenance`.
+- `client/watchdog.py` (log `/tmp/watchdog.log`): once a minute, reports any tag machine stuck 5 checks running, and power above 90%. Watch it with a Monitor on `tail -F /tmp/watchdog.log | grep --line-buffered "Maintenance Crew"`.
 
 ## Known issues
 - The old iron smelter's west electric drill (-95..-93, 37..39; the player upgraded it) also mines coal; the coal fills its furnace's fuel slot and jams it. I took 45 coal out on 2026-10-04; it will re-jam. Move or remove that drill.

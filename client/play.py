@@ -82,14 +82,24 @@ def flush_narration():
 atexit.register(flush_narration)
 
 
+JOBS = {
+    "science_run": "red science line", "scale_run": "red science lines 2 and 3", "green_run": "green science",
+    "green_copper": "copper feed for green science", "elec_iron_run": "electric iron smelting",
+    "power2_run": "second boiler and steam engines", "upgrade_green": "faster green assembler",
+    "brick_sink": "brick catcher", "brick_cleanup": "brick cleanup", "labs_run": "labs 4 and 5",
+    "coal_ferry": "coal delivery to the boiler",
+}
+
+
 def _script_name():
-    return os.path.splitext(os.path.basename(sys.argv[0] or "script"))[0]
+    name = os.path.splitext(os.path.basename(sys.argv[0] or "job"))[0]
+    return JOBS.get(name, name.replace("_run", "").replace("_", " "))
 
 
 def _job_done():
     if _job["started"]:
         try:
-            fx.main(["say", f"[working] {_script_name()}: " + ("FAILED, looking into it" if _job["failed"] else "done")])
+            fx.main(["say", f"[Foreman] {_script_name()}: " + ("hit a problem, Claude is looking into it" if _job["failed"] else "job finished")])
         except Exception:
             pass
 
@@ -103,7 +113,7 @@ def run(*args):
         # tell the player a script is now driving Claude's character
         _job["started"] = True
         try:
-            fx.main(["say", f"[working] {_script_name()}: started"])
+            fx.main(["say", f"[Foreman] Claude is on the job: {_script_name()}"])
         except Exception:
             pass
     print(f"$ fx {' '.join(map(str, args))}", flush=True)

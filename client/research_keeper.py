@@ -44,7 +44,7 @@ def main():
                     n = pick(r.get("available", []), (RED, GREEN) if green else (RED,))
                     if n:
                         b.call("research", {"name": n})
-                        b.call("say", {"text": f"[research keeper] research finished; now researching {n}"}, check=False)
+                        b.call("say", {"text": f"[Lab Director] research done, the labs are starting on {n.replace('-', ' ')}"}, check=False)
                         print(f"{time.strftime('%H:%M:%S')} queued {n}", flush=True)
         except Exception as e:  # game reloading etc.: try again next round
             print(f"{time.strftime('%H:%M:%S')} {e}", flush=True)
