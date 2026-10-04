@@ -13,7 +13,7 @@ from bridge import Bridge  # noqa: E402
 SKIP = ("military", "gun-turret", "stone-wall", "weapon", "physical-projectile", "heavy-armor", "turret")
 # preferred order; anything else red-only follows, cheapest first
 PREFER = ["logistics", "electric-mining-drill", "logistic-science-pack", "steel-processing", "fast-inserter", "radar",
-          "automation-2", "research-speed-1", "research-speed-2", "logistics-2",
+          "automation-2", "advanced-material-processing", "research-speed-1", "research-speed-2", "logistics-2",
           # the road to blue science
           "engine", "fluid-handling", "oil-gathering", "plastics", "advanced-circuit", "sulfur-processing",
           "chemical-science-pack",
