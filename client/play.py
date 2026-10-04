@@ -86,7 +86,7 @@ JOBS = {
     "science_run": "red science line", "scale_run": "red science lines 2 and 3", "green_run": "green science",
     "green_copper": "copper feed for green science", "elec_iron_run": "electric iron smelting",
     "power2_run": "second boiler and steam engines", "upgrade_green": "faster green assembler",
-    "brick_sink": "brick catcher", "green2_run": "Green Block 2", "brick_cleanup": "brick cleanup", "labs_run": "labs 4 and 5", "labs67_run": "labs 6 and 7", "elec_iron_ext_run": "two more iron smelting columns",
+    "brick_sink": "brick catcher", "green2_run": "Green Block 2", "brick_cleanup": "brick cleanup", "labs_run": "labs 4 and 5", "labs67_run": "labs 6 and 7", "elec_iron_ext_run": "two more iron smelting columns", "copper_steel_run": "steel furnaces for copper",
     "coal_ferry": "coal delivery to the boiler",
 }
 

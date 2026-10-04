@@ -41,6 +41,7 @@ UPGRADES = {
     "inserter": ("fast-inserter",),
     "transport-belt": ("fast-transport-belt",),
     "assembling-machine-1": ("assembling-machine-2",),
+    "stone-furnace": ("steel-furnace",),
 }
 
 
@@ -458,7 +459,7 @@ for _, e in pairs(game.surfaces[1].find_entities_filtered{name='character'}) do
   if not e.player then c = e end
 end
 if not c then rcon.print('error: no Claude character') return end
-local old = game.surfaces[1].find_entities_filtered{area={{%s, %s}, {%s, %s}}, type={'assembling-machine','inserter','transport-belt','container','mining-drill'}}[1]
+local old = game.surfaces[1].find_entities_filtered{area={{%s, %s}, {%s, %s}}, type={'assembling-machine','inserter','transport-belt','container','mining-drill','furnace'}}[1]
 if not old then rcon.print('error: nothing upgradable there') return end
 if not c.can_reach_entity(old) then rcon.print('error: out of reach') return end
 local inv = c.get_main_inventory()
