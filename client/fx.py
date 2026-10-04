@@ -23,7 +23,7 @@ SCRIPT_OUTPUT = os.path.join(os.environ.get("APPDATA", ""), "Factorio", "script-
 PAD = 4  # fingerprint margin (SPEC AC-8)
 LINT_PAD = 40  # lint margin: undergrounds (5) and pole networks (SPEC AC-17: bbox + 40)
 MACHINE_OK = {
-    "furnace": {"working"},
+    "furnace": {"working", "full_output"},  # output backed up: downstream is the bottleneck
     "assembling-machine": {"working", "full_output"},  # output backed up: downstream is the bottleneck
     "mining-drill": {"working", "waiting_for_space_in_destination"},
     "inserter": {"working", "waiting_for_source_items", "waiting_for_space_in_destination"},  # a full destination is judged on its own
@@ -227,7 +227,10 @@ def tag_entities(b, tag):
     """The tag's entities. A ghost someone else built (the player) leaves an invalid
     reference; resolve it to the built entity of the same name on the planned tile."""
     ents = b.call("tag", {"tag": tag})["entities"]
-    codes = load_state()["tags"].get(tag, {}).get("codes") or []
+    t = load_state()["tags"].get(tag, {})
+    codes = t.get("codes") or []
+    retired = set(t.get("retired") or [])
+    ents = [e for i, e in enumerate(ents) if e.get("index", i + 1) not in retired]
     for i, e in enumerate(ents):
         if not e.get("invalid") or not 0 < e.get("index", 0) <= len(codes):
             continue
@@ -396,6 +399,28 @@ def cmd_mine(b, a):
         raise Fail("inventory full")
 
 
+def cmd_retire(b, a):
+    """Mine a built entity of a tag on purpose (a layout change). The tag keeps
+    the record but `prove` skips it from now on."""
+    st = load_state()
+    t = get_tag(st, a.tag)
+    codes = t.get("codes") or []
+    idx = next((i + 1 for i, c in enumerate(codes) if (c[0], c[1]) == (a.x, a.y)), None)
+    if idx is None:
+        raise Fail(f"tag {a.tag} has nothing planned at {a.x},{a.y}")
+    if idx not in t.setdefault("retired", []):
+        name = CODES[codes[idx - 1][2]][0]
+        snap = b.call("scan", {"area": [a.x, a.y, a.x, a.y]})
+        e = next((s for s in snap["entities"] if s["name"] == name and tuple(s["tile"]) == (a.x, a.y)), None)
+        if e is not None:
+            j = b.run_job("mine", {"x": e["position"][0], "y": e["position"][1], "n": 1})
+            if j["state"] != "done" or not j["result"].get("mined"):
+                raise Fail(j.get("msg") or (j.get("result") or {}).get("msg") or "mining failed")
+        t["retired"].append(idx)
+        save_state(st)
+    print(f"retired {a.x},{a.y} from {a.tag}")
+
+
 def cmd_craft(b, a):
     j = b.run_job("craft", {"item": a.item, "n": a.n})
     if j["state"] != "done":
@@ -545,6 +570,10 @@ def main(argv=None):
     s.add_argument("x", type=float)
     s.add_argument("y", type=float)
     s.add_argument("n", type=int, nargs="?", default=1)
+    s = sub.add_parser("retire")
+    s.add_argument("tag")
+    s.add_argument("x", type=int)
+    s.add_argument("y", type=int)
     s = sub.add_parser("craft")
     s.add_argument("item")
     s.add_argument("n", type=int)

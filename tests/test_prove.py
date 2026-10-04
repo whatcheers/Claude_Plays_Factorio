@@ -58,3 +58,8 @@ def test_assembler_with_full_output_is_ok():
     # a gear assembler outruns the flask assembler it feeds and sits output-full most of the time
     _, bad = judge([[ent(1, "assembling-machine", "full_output")]] * 3)
     assert bad == []
+
+
+def test_furnace_with_full_output_is_ok():
+    _, bad = judge([[ent(1, "furnace", "full_output")]] * 3)
+    assert bad == []
