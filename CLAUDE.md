@@ -35,15 +35,18 @@ All commands are `python client/fx.py <command>`. Exit code 0 means success.
 | `unplan T` | Remove exactly that tag's ghosts |
 | `lint T` | Rule findings for the tag: inserter, dead-end, intent, belt-end, sideload, power, placement, drill, underground |
 | `shot X Y ZOOM [--w --h]` | Screenshot into `%APPDATA%\Factorio\script-output\claude\` and print the path; works while paused. View it with Read |
-| `build T` | Refuses unless lint, look and shot have all seen the current area since `plan`. Then walks to each ghost and builds it from inventory, reporting `missing` and `unreachable` |
+| `build T` | Refuses unless lint, look and shot have all seen the current area since `plan`, and re-lints a fresh scan right before building. Then walks to each ghost and builds it from inventory, reporting `missing` and `unreachable` |
 | `walk X Y [--radius R]` | Pathfind and walk there |
 | `mine X Y [N]` | Mine a resource or entity within reach, N times |
 | `craft ITEM N` | Hand-craft from Claude's own ingredients |
 | `put X Y ITEM N` / `take X Y ITEM N` | Move items between Claude's inventory and an entity within reach |
 | `inv` | List Claude's inventory |
+| `poles X1 Y1 X2 Y2 [--tag T]` | Plan small-pole ghosts along an L path (x first, then y), at most 7 tiles apart; then look/shot/lint/build as usual |
+| `research NAME` / `tech` | Set the current research (refuses trigger techs and missing prerequisites) / show current research, progress and available techs |
+| `recipe X Y RECIPE` | Set a built assembler's recipe (within reach). Ghosts get recipes from stamp keys: `@g iron-gear-wheel` then `Ag` tiles |
 | `say TEXT...` | Post in game chat as **[Claude]**, with a speech bubble over Claude's character |
 | `chat [--after N]` | Print players' chat messages with id > N |
-| `prove T N` | Run N ticks, then print each entity's status. Exit 0 only if every machine is working |
+| `prove T N` | Run N ticks sampling statuses every 60; exit 0 only if every machine is OK in at least half the samples and fed containers end non-empty |
 
 The workflow is always: `plan` → `look` + `shot` + `lint` → `build` → `put` fuel/inputs → `prove`. Commands that need game time unpause the game and restore the previous paused state afterwards.
 

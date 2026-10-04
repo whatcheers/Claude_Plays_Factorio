@@ -108,9 +108,49 @@ end
 
 -- ---------------------------------------------------------------- scan
 local function footprint(e)
-  local b = e.bounding_box
-  local x1, y1 = math.floor(b.left_top.x), math.floor(b.left_top.y)
-  return x1, y1, math.max(1, math.ceil(b.right_bottom.x) - x1), math.max(1, math.ceil(b.right_bottom.y) - y1)
+  -- prototype tile size (swapped when facing east/west), centred on position;
+  -- bounding boxes are inset and lie for offshore pumps
+  local proto = e.type == "entity-ghost" and e.ghost_prototype or e.prototype
+  local ok, w, h = pcall(function() return proto.tile_width, proto.tile_height end)
+  if not ok or not w or w == 0 then
+    local b = e.bounding_box
+    local x1, y1 = math.floor(b.left_top.x), math.floor(b.left_top.y)
+    return x1, y1, math.max(1, math.ceil(b.right_bottom.x) - x1), math.max(1, math.ceil(b.right_bottom.y) - y1)
+  end
+  local d = e.direction or 0
+  if (d == defines.direction.east or d == defines.direction.west) and e.type ~= "tree" then w, h = h, w end
+  local p = e.position
+  return math.floor(p.x - w / 2 + 0.01), math.floor(p.y - h / 2 + 0.01), w, h
+end
+
+local DSTEP = { [0] = { 0, -1 }, [4] = { 1, 0 }, [8] = { 0, 1 }, [12] = { -1, 0 } }
+
+local function fluid_conns(e, proto)
+  local out = {}
+  local fbs = proto.fluidbox_prototypes
+  if not fbs or #fbs == 0 then return nil end
+  local dir = e.direction or 0
+  local k = math.floor(dir / 4) + 1
+  local p = e.position
+  for i, fb in ipairs(fbs) do
+    for _, pc in ipairs(fb.pipe_connections or {}) do
+      if (pc.connection_type or "normal") == "normal" and pc.direction then
+        local off = (pc.positions and pc.positions[k]) or pc.position or { x = 0, y = 0 }
+        local ox, oy = off.x or off[1], off.y or off[2]
+        if not pc.positions then -- rotate a north-relative offset ourselves
+          for _ = 1, k - 1 do ox, oy = -oy, ox end
+        end
+        local dd = (pc.direction + dir) % 16
+        local ax, ay = math.floor(p.x + ox), math.floor(p.y + oy)
+        local s = DSTEP[dd]
+        if s then
+          out[#out + 1] = { at = { ax, ay }, to = { ax + s[1], ay + s[2] }, box = i, kind = fb.production_type,
+            fluid = fb.filter and fb.filter.name or nil }
+        end
+      end
+    end
+  end
+  return out
 end
 
 local function describe(e)
@@ -139,7 +179,19 @@ local function describe(e)
       d.supply = { p.x - r, p.y - r, p.x + r, p.y + r }
     end
   end
-  pcall(function() d.needs_power = proto.electric_energy_source_prototype ~= nil end)
+  pcall(function() d.needs_power = proto.electric_energy_source_prototype ~= nil and typ ~= "generator" end)
+  if typ ~= "pipe-to-ground" then
+    pcall(function() d.fluid = fluid_conns(e, proto) end)
+  end
+  if typ == "electric-pole" then
+    pcall(function() d.wire = proto.get_max_wire_distance() end)
+    d.powered = false
+    if not ghost then
+      pcall(function()
+        for _ in pairs(e.electric_network_statistics.output_counts) do d.powered = true; break end
+      end)
+    end
+  end
   if ghost then
     d.can_place = e.surface.can_place_entity {
       name = name, position = e.position, direction = e.direction, force = e.force,
@@ -244,6 +296,40 @@ function api.shot(a)
 end
 
 -- ---------------------------------------------------------------- instant fair-play actions
+-- ---------------------------------------------------------------- research / recipes
+function api.tech()
+  local f = game.forces.player
+  local cur = f.current_research
+  local avail = {}
+  for name, t in pairs(f.technologies) do
+    if t.enabled and not t.researched then
+      local ready = true
+      for _, pre in pairs(t.prerequisites) do if not pre.researched then ready = false end end
+      if ready then
+        local ings = {}
+        for _, i in ipairs(t.research_unit_ingredients) do ings[#ings + 1] = i.name end
+        avail[#avail + 1] = { name = name, trigger = t.prototype.research_trigger and t.prototype.research_trigger.type or nil,
+          units = t.prototype.research_trigger and nil or t.research_unit_count, ingredients = ings }
+      end
+    end
+  end
+  table.sort(avail, function(a, b) return a.name < b.name end)
+  return { current = cur and cur.name or nil, progress = f.research_progress, available = avail }
+end
+
+function api.research(a)
+  local f = game.forces.player
+  local t = f.technologies[a.name]
+  if not t then return { error = "no such tech " .. tostring(a.name) } end
+  if t.researched then return { error = a.name .. " is already researched" } end
+  for n, pre in pairs(t.prerequisites) do
+    if not pre.researched then return { error = a.name .. " needs " .. n .. " first" } end
+  end
+  if t.prototype.research_trigger then return { error = a.name .. " is a trigger tech (" .. t.prototype.research_trigger.type .. "); it can't be queued" } end
+  f.research_queue = { a.name }
+  return { current = f.current_research and f.current_research.name or nil }
+end
+
 function api.inv()
   local c = char()
   if not c then return { error = "no character; run spawn" } end
@@ -260,6 +346,19 @@ local function entity_at(x, y, filter)
     end
   end
   return best
+end
+
+function api.set_recipe(a)
+  local c = char()
+  if not c then return { error = "no character; run spawn" } end
+  local e = entity_at(a.x, a.y, function(e) return e.type == "assembling-machine" end)
+  if not e then return { error = "no assembler at " .. a.x .. "," .. a.y } end
+  if not c.can_reach_entity(e) then return { error = "out of reach" } end
+  if not game.forces.player.recipes[a.recipe] or not game.forces.player.recipes[a.recipe].enabled then
+    return { error = "recipe " .. tostring(a.recipe) .. " is not unlocked" }
+  end
+  e.set_recipe(a.recipe)
+  return { recipe = a.recipe }
 end
 
 function api.put(a)

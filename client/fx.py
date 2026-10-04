@@ -14,20 +14,25 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from bridge import ROOT, Bridge, BridgeError  # noqa: E402
-from layout import CODES, StampError, load_stamp, place, rotate  # noqa: E402
+from layout import CODES, Placed, StampError, load_stamp, place, rotate  # noqa: E402
 from lint import lint  # noqa: E402
 from render import render  # noqa: E402
 
 STATE = os.path.join(ROOT, ".fx_state.json")
 SCRIPT_OUTPUT = os.path.join(os.environ.get("APPDATA", ""), "Factorio", "script-output")
 PAD = 4  # fingerprint margin (SPEC AC-8)
-LINT_PAD = 6  # lint margin: must exceed the longest underground reach (5)
+LINT_PAD = 40  # lint margin: undergrounds (5) and pole networks (SPEC AC-17: bbox + 40)
 MACHINE_OK = {
     "furnace": {"working"},
     "assembling-machine": {"working"},
     "mining-drill": {"working", "waiting_for_space_in_destination"},
     "inserter": {"working", "waiting_for_source_items"},
+    "boiler": {"working"},
+    "generator": {"working"},
+    "offshore-pump": {"working"},
+    "lab": {"working"},
 }
+SAMPLE_TICKS = 60
 
 
 class Fail(Exception):
@@ -148,13 +153,17 @@ def cmd_plan(b, a):
     if tag in st["tags"]:
         raise Fail(f"tag {tag} already exists; unplan it first")
     placed = place(stamp, a.x, a.y, a.rot)
+    rs = rotate(stamp, a.rot)
+    bbox = [a.x, a.y, a.x + rs.w - 1, a.y + rs.h - 1]
+    plan_placed(b, st, tag, placed, bbox, {"stamp": a.stamp, "x": a.x, "y": a.y, "rot": a.rot})
+
+
+def plan_placed(b, st, tag, placed, bbox, meta):
     items = [
         {"name": p.name, "position": list(p.position), "direction": p.direction, "belt_type": p.belt_type, "tile": list(p.tile), "w": p.w, "h": p.h, "size": max(p.w, p.h), "recipe": p.recipe}
         for p in placed
     ]
     r = b.call("plan", {"tag": tag, "items": items})
-    rs = rotate(stamp, a.rot)
-    bbox = [a.x, a.y, a.x + rs.w - 1, a.y + rs.h - 1]
     print(f"tag: {tag}")
     bad = []
     for want, got in zip(placed, r["placed"]):
@@ -162,14 +171,37 @@ def cmd_plan(b, a):
         if mark != "ok":
             bad.append(want)
         print(f"  {want.tile[0]},{want.tile[1]} {want.code}{want.dchar} {want.name} -> engine {got['tile'][0]},{got['tile'][1]} dir {got['direction']} {mark}")
-    st["tags"][tag] = {
-        "stamp": a.stamp, "x": a.x, "y": a.y, "rot": a.rot, "bbox": bbox,
-        "codes": [[p.tile[0], p.tile[1], p.code, p.dchar] for p in placed], "checks": {},
-    }
+    st["tags"][tag] = dict(meta, bbox=bbox, codes=[[p.tile[0], p.tile[1], p.code, p.dchar] for p in placed], checks={})
     save_state(st)
     print(f"bbox {bbox[0]},{bbox[1]} .. {bbox[2]},{bbox[3]}")
     if bad:
         raise Fail(f"{len(bad)} ghost(s) landed somewhere other than the stamp says")
+
+
+def pole_points(x1, y1, x2, y2, step=7):
+    """Tiles along an L path (x first, then y), no two consecutive more than `step` apart."""
+    def span(a, b):
+        n = max(1, -(-abs(b - a) // step))
+        return [a + round((b - a) * i / n) for i in range(n + 1)]
+
+    pts = [(x, y1) for x in span(x1, x2)] + [(x2, y) for y in span(y1, y2)][1:]
+    out = []
+    for p in pts:
+        if p not in out:
+            out.append(p)
+    return out
+
+
+def cmd_poles(b, a):
+    st = load_state()
+    tag = a.tag or f"poles{int(time.time())}"
+    if tag in st["tags"]:
+        raise Fail(f"tag {tag} already exists; unplan it first")
+    pts = pole_points(a.x1, a.y1, a.x2, a.y2)
+    placed = [Placed("p", "small-electric-pole", 1, 1, p, (p[0] + 0.5, p[1] + 0.5), 0, ".", None) for p in pts]
+    xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+    plan_placed(b, st, tag, placed, [min(xs), min(ys), max(xs), max(ys)], {"stamp": "poles"})
+    print(f"{len(pts)} poles")
 
 
 def cmd_unplan(b, a):
@@ -242,6 +274,11 @@ def cmd_build(b, a):
     st = load_state()
     t = get_tag(st, a.tag)
     gate(b, t)
+    fresh = lint(b.call("scan", {"area": padded(t["bbox"], LINT_PAD)}), codes_of(t))
+    if fresh:
+        for f in fresh:
+            print(f)
+        raise Fail(f"build refused: fresh lint has {len(fresh)} finding(s)")
     ents = b.call("tag", {"tag": a.tag})["entities"]
     ghosts = [e for e in ents if not e.get("invalid") and e["ghost"]]
     inv = b.call("inv")["items"]
@@ -333,7 +370,27 @@ def cmd_inv(b, a):
         print(f"  {n:5d} {name}")
 
 
-def prove_report(ents):
+def judge(samples):
+    """samples: list of `tag` entity lists taken every SAMPLE_TICKS. An entity
+    passes if its status is OK in at least half the samples; containers fed by
+    tag inserters must end non-empty; the final sample decides ghosts/gone."""
+    final = samples[-1]
+    lines, bad = prove_report(final, check_status=False)
+    for i, e in enumerate(final):
+        if e.get("invalid") or e.get("ghost"):
+            continue
+        ok = MACHINE_OK.get(e["type"])
+        if ok is None:
+            continue
+        good = sum(1 for s in samples if i < len(s) and s[i].get("status") in ok)
+        where = f"{e['tile'][0]},{e['tile'][1]} {e['name']}"
+        lines.append(f"  {where}: ok in {good}/{len(samples)} samples")
+        if good * 2 < len(samples):
+            bad.append(f"{where} ({e.get('status')}; ok {good}/{len(samples)})")
+    return lines, bad
+
+
+def prove_report(ents, check_status=True):
     """Statuses, plus: every container a tag inserter drops into must have
     received something (the output actually arrived)."""
     lines, bad = [], []
@@ -355,7 +412,7 @@ def prove_report(ents):
         extra = f" {e['contents']}" if e.get("contents") else ""
         lines.append(f"  {where}: {status}{extra}")
         ok = MACHINE_OK.get(e["type"])
-        if ok is not None and status not in ok:
+        if check_status and ok is not None and status not in ok:
             bad.append(f"{where} ({status})")
         if e["type"] == "container" and tuple(e["tile"]) in sink_tiles and not e.get("contents"):
             bad.append(f"{where} (output container is empty)")
@@ -363,14 +420,35 @@ def prove_report(ents):
 
 
 def cmd_prove(b, a):
-    b.run_ticks(a.ticks)
-    ents = b.call("tag", {"tag": a.tag})["entities"]
-    lines, bad = prove_report(ents)
-    print(f"after {a.ticks} ticks:")
+    samples = []
+    for _ in range(max(1, a.ticks // SAMPLE_TICKS)):
+        b.run_ticks(SAMPLE_TICKS)
+        samples.append(b.call("tag", {"tag": a.tag})["entities"])
+    lines, bad = judge(samples)
+    print(f"after {a.ticks} ticks ({len(samples)} samples):")
     print("\n".join(lines))
     if bad:
         raise Fail("not working: " + "; ".join(bad))
     print("all working")
+
+
+def cmd_research(b, a):
+    r = b.call("research", {"name": a.name})
+    print(f"current research: {r['current']}")
+
+
+def cmd_tech(b, a):
+    r = b.call("tech")
+    cur = r.get("current")
+    print(f"current: {cur or 'none'}" + (f"  {100 * (r.get('progress') or 0):.0f}%" if cur else ""))
+    for t in r.get("available", []):
+        how = f"trigger: {t['trigger']}" if t.get("trigger") else f"{t.get('units')} x {'+'.join(t.get('ingredients') or [])}"
+        print(f"  {t['name']}  ({how})")
+
+
+def cmd_recipe(b, a):
+    r = b.call("set_recipe", {"x": a.x, "y": a.y, "recipe": a.recipe})
+    print(f"recipe set: {r['recipe']}")
 
 
 def cmd_say(b, a):
@@ -426,6 +504,16 @@ def main(argv=None):
         s.add_argument("item")
         s.add_argument("n", type=int)
     sub.add_parser("inv")
+    s = sub.add_parser("poles")
+    for n in ("x1", "y1", "x2", "y2"):
+        s.add_argument(n, type=int)
+    s.add_argument("--tag")
+    sub.add_parser("research").add_argument("name")
+    sub.add_parser("tech")
+    s = sub.add_parser("recipe")
+    s.add_argument("x", type=float)
+    s.add_argument("y", type=float)
+    s.add_argument("recipe")
     sub.add_parser("say").add_argument("text", nargs="+")
     sub.add_parser("chat").add_argument("--after", type=int, default=0)
     s = sub.add_parser("prove")
