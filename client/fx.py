@@ -24,7 +24,7 @@ PAD = 4  # fingerprint margin (SPEC AC-8)
 LINT_PAD = 40  # lint margin: undergrounds (5) and pole networks (SPEC AC-17: bbox + 40)
 MACHINE_OK = {
     "furnace": {"working"},
-    "assembling-machine": {"working"},
+    "assembling-machine": {"working", "full_output"},  # output backed up: downstream is the bottleneck
     "mining-drill": {"working", "waiting_for_space_in_destination"},
     "inserter": {"working", "waiting_for_source_items", "waiting_for_space_in_destination"},  # a full destination is judged on its own
     "boiler": {"working"},

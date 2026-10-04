@@ -52,3 +52,9 @@ def test_pole_points_single():
 def test_inserter_into_full_boiler_is_ok():
     _, bad = judge([[ent(1, "inserter", "waiting_for_space_in_destination")]] * 3)
     assert bad == []
+
+
+def test_assembler_with_full_output_is_ok():
+    # a gear assembler outruns the flask assembler it feeds and sits output-full most of the time
+    _, bad = judge([[ent(1, "assembling-machine", "full_output")]] * 3)
+    assert bad == []
