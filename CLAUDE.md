@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**Resuming? Read `docs/STATE.md` first.** It has the live game state, what is built where, the plan, and how to work with the player.
+
 ## What this is
 This project lets Claude play vanilla Factorio 2.0.77 through its **own second character**, over RCON, under fair-play rules:
 - it has reach limits;
@@ -41,7 +43,7 @@ All commands are `python client/fx.py <command>`. Exit code 0 means success.
 | `craft ITEM N` | Hand-craft from Claude's own ingredients |
 | `put X Y ITEM N` / `take X Y ITEM N` | Move items between Claude's inventory and an entity within reach |
 | `inv` | List Claude's inventory |
-| `poles X1 Y1 X2 Y2 [--tag T]` | Plan small-pole ghosts along an L path (x first, then y), at most 7 tiles apart; then look/shot/lint/build as usual |
+| `poles X1 Y1 X2 Y2 [--tag T] [--skip-ends]` | Plan small-pole ghosts along an L path (x first, then y), at most 7 tiles apart (`--skip-ends` when both ends are existing poles); then look/shot/lint/build as usual |
 | `research NAME` / `tech` | Set the current research (refuses trigger techs and missing prerequisites) / show current research, progress and available techs |
 | `recipe X Y RECIPE` | Set a built assembler's recipe (within reach). Ghosts get recipes from stamp keys: `@g iron-gear-wheel` then `Ag` tiles |
 | `say TEXT...` | Post in game chat as **[Claude]**, with a speech bubble over Claude's character |

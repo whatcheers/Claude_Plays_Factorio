@@ -198,6 +198,10 @@ def cmd_poles(b, a):
     if tag in st["tags"]:
         raise Fail(f"tag {tag} already exists; unplan it first")
     pts = pole_points(a.x1, a.y1, a.x2, a.y2)
+    if a.skip_ends:  # both ends are existing poles: only plan the ones between
+        pts = pts[1:-1]
+        if not pts:
+            raise Fail("ends are within one wire reach; no poles needed")
     placed = [Placed("p", "small-electric-pole", 1, 1, p, (p[0] + 0.5, p[1] + 0.5), 0, ".", None) for p in pts]
     xs, ys = [p[0] for p in pts], [p[1] for p in pts]
     plan_placed(b, st, tag, placed, [min(xs), min(ys), max(xs), max(ys)], {"stamp": "poles"})
@@ -508,6 +512,7 @@ def main(argv=None):
     for n in ("x1", "y1", "x2", "y2"):
         s.add_argument(n, type=int)
     s.add_argument("--tag")
+    s.add_argument("--skip-ends", action="store_true", help="the end points are existing poles")
     sub.add_parser("research").add_argument("name")
     sub.add_parser("tech")
     s = sub.add_parser("recipe")

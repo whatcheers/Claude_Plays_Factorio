@@ -34,3 +34,6 @@ Ghost spec `{type="input"|"output"}`. Read the type back with `belt_to_ground_ty
 ## Screenshots
 - `game.take_screenshot{surface=, position=, resolution=, zoom=, path=, show_entity_info=true}` writes to `%APPDATA%\Factorio\script-output\<path>` and **renders while `tick_paused=true`**.
 - At zoom 1 (32 px/tile), ghost belts and inserters are visible, but their facing is not readable. Use zoom ≥ 2 for direction checks, and treat the ASCII view built from engine data as the source of truth.
+
+## can_place_entity needs a build_check_type
+Without `build_check_type`, `surface.can_place_entity` returns true for an offshore pump on dry land. Always pass `build_check_type = defines.build_check_type.manual` to get the rules a player is held to (measured 2026-10-04 at 0,19, with no water within 2 tiles).
